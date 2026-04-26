@@ -8,17 +8,16 @@ export default async function Home() {
     }
   `);
 
-  // ❌ kui pole galeriisid
-  if (!galleries || galleries.length === 0) {
-    return <div>No galleries found</div>;
+  // leia esimene, millel on päris slug
+  const firstGallery = galleries?.find(
+    (g) => g.slug && g.slug !== "undefined"
+  );
+
+  // kui ei leia → ära redirecti (väldib loopi)
+  if (!firstGallery) {
+    return <div>No valid gallery</div>;
   }
 
-  const firstSlug = galleries[0]?.slug;
-
-  // ❌ kui slug puudub → ära redirecti
-  if (!firstSlug) {
-    return <div>No valid slug</div>;
-  }
-
-  redirect(`/${firstSlug}`);
+  // 🔥 redirect ainult siis kui slug on olemas
+  redirect(`/${firstGallery.slug}`);
 }
