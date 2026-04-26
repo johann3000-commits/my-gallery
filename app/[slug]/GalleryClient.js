@@ -266,10 +266,14 @@ export default function GalleryClient({ galleries, currentIndex }) {
         <img
           key={image._key}
           src={urlFor(image).width(2000).url()}
-          onLoad={() => {
-            setLoaded(true);
-            setPrevImage(null); // 🔥 eemaldab ghosting
-          }}
+         onLoad={() => {
+  setLoaded(true);
+
+  // 🔥 oota kuni fade lõpeb
+  setTimeout(() => {
+    setPrevImage(null);
+  }, 600); // peab matchima transition durationiga
+}}
           style={{
             position: "absolute",
             width: "100%",
