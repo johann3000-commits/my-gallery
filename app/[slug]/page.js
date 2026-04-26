@@ -8,13 +8,17 @@ export default async function Home() {
     }
   `);
 
-  // kui pole ühtegi galeriid
+  // ❌ kui pole galeriisid
   if (!galleries || galleries.length === 0) {
     return <div>No galleries found</div>;
   }
 
-  // võta esimene
-  const firstSlug = galleries[0].slug;
+  const firstSlug = galleries[0]?.slug;
+
+  // ❌ kui slug puudub → ära redirecti
+  if (!firstSlug) {
+    return <div>No valid slug</div>;
+  }
 
   redirect(`/${firstSlug}`);
 }
