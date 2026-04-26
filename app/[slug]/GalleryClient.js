@@ -118,7 +118,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     if (distance < -minSwipeDistance) prev();
   };
 
-  // INDEX VIEW
+  // 📚 INDEX VIEW
   if (showIndex) {
     return (
       <div
@@ -182,6 +182,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     );
   }
 
+  // 🎞️ SLIDESHOW
   return (
     <div
       onTouchStart={onTouchStart}
@@ -238,16 +239,17 @@ export default function GalleryClient({ galleries, currentIndex }) {
         }}
       />
 
-      {/* CROSSFADE */}
+      {/* IMAGE WRAPPER */}
       <div
         style={{
           position: "relative",
           width: "90%",
           height: "90%",
-          zIndex: 1,
+          background: "#fff",
         }}
       >
-        {prevImage && (
+        {/* previous ainult loading ajal */}
+        {!loaded && prevImage && (
           <img
             src={urlFor(prevImage).width(2000).url()}
             style={{
@@ -255,15 +257,19 @@ export default function GalleryClient({ galleries, currentIndex }) {
               width: "100%",
               height: "100%",
               objectFit: "contain",
-              pointerEvents: "none", // 🔥 oluline fix
+              pointerEvents: "none",
             }}
           />
         )}
 
+        {/* current */}
         <img
           key={image._key}
           src={urlFor(image).width(2000).url()}
-          onLoad={() => setLoaded(true)}
+          onLoad={() => {
+            setLoaded(true);
+            setPrevImage(null); // 🔥 eemaldab ghosting
+          }}
           style={{
             position: "absolute",
             width: "100%",
@@ -271,7 +277,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
             objectFit: "contain",
             opacity: loaded ? 1 : 0,
             transition: "opacity 0.6s cubic-bezier(0.4,0,0.2,1)",
-            pointerEvents: "none", // 🔥 oluline fix
+            pointerEvents: "none",
           }}
         />
       </div>
