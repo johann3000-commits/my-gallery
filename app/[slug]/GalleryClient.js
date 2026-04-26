@@ -111,60 +111,28 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-
     const distance = touchStart - touchEnd;
-
     if (distance > minSwipeDistance) next();
     if (distance < -minSwipeDistance) prev();
   };
 
-  // 📚 INDEX VIEW
+  // INDEX VIEW
   if (showIndex) {
     return (
-      <div
-        style={{
-          width: "100vw",
-          height: "100vh",
-          background: "#fff",
-          overflowY: "auto",
-          padding: "5%",
-        }}
-      >
+      <div style={{ width: "100vw", height: "100vh", background: "#fff", overflowY: "auto", padding: "5%" }}>
         <div
           onClick={() => setShowIndex(false)}
-          style={{
-            ...textPrimary,
-            position: "fixed",
-            top: 20,
-            right: 20,
-            cursor: "pointer",
-          }}
+          style={{ ...textPrimary, position: "fixed", top: 20, right: 20, cursor: "pointer" }}
         >
           Close
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "20px",
-          }}
-        >
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px" }}>
           {galleries.map((g) => (
             <React.Fragment key={g.slug}>
-              <div
-                style={{
-                  ...textPrimary,
-                  gridColumn: "1 / -1",
-                  display: "flex",
-                  gap: "12px",
-                  marginTop: "40px",
-                }}
-              >
+              <div style={{ ...textPrimary, gridColumn: "1 / -1", display: "flex", gap: "12px", marginTop: "40px" }}>
                 <div>{g.title}</div>
-                {g.subtitle && (
-                  <div style={textSecondary}>{g.subtitle}</div>
-                )}
+                {g.subtitle && <div style={textSecondary}>{g.subtitle}</div>}
               </div>
 
               {g.images.map((img, iIdx) => (
@@ -182,7 +150,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
     );
   }
 
-  // 🎞️ SLIDESHOW
   return (
     <div
       onTouchStart={onTouchStart}
@@ -202,54 +169,20 @@ export default function GalleryClient({ galleries, currentIndex }) {
       {/* INDEX */}
       <div
         onClick={() => setShowIndex(true)}
-        style={{
-          ...textPrimary,
-          position: "absolute",
-          top: 20,
-          right: 20,
-          cursor: "pointer",
-          zIndex: 10,
-        }}
+        style={{ ...textPrimary, position: "absolute", top: 20, right: 20, cursor: "pointer", zIndex: 10 }}
       >
         Index
       </div>
 
       {/* CLICK AREAS */}
-      <div
-        onClick={prev}
-        style={{
-          position: "absolute",
-          left: 0,
-          top: "5%",
-          width: "50%",
-          height: "90%",
-          zIndex: 5,
-        }}
-      />
-
-      <div
-        onClick={next}
-        style={{
-          position: "absolute",
-          right: 0,
-          top: "5%",
-          width: "50%",
-          height: "90%",
-          zIndex: 5,
-        }}
-      />
+      <div onClick={prev} style={{ position: "absolute", left: 0, top: "5%", width: "50%", height: "90%", zIndex: 5 }} />
+      <div onClick={next} style={{ position: "absolute", right: 0, top: "5%", width: "50%", height: "90%", zIndex: 5 }} />
 
       {/* IMAGE WRAPPER */}
-      <div
-        style={{
-          position: "relative",
-          width: "90%",
-          height: "90%",
-          background: "#fff",
-        }}
-      >
-        {/* previous ainult loading ajal */}
-        {!loaded && prevImage && (
+      <div style={{ position: "relative", width: "90%", height: "90%", background: "#fff" }}>
+        
+        {/* PREVIOUS */}
+        {prevImage && (
           <img
             src={urlFor(prevImage).width(2000).url()}
             style={{
@@ -262,46 +195,37 @@ export default function GalleryClient({ galleries, currentIndex }) {
           />
         )}
 
-        {/* current */}
+        {/* CURRENT */}
         <img
           key={image._key}
           src={urlFor(image).width(2000).url()}
-         onLoad={() => {
-  setLoaded(true);
+          onLoad={() => {
+            // cinematic delay
+            setTimeout(() => setLoaded(true), 80);
 
-  // 🔥 oota kuni fade lõpeb
-  setTimeout(() => {
-    setPrevImage(null);
-  }, 600); // peab matchima transition durationiga
-}}
+            // remove old after fade
+            setTimeout(() => setPrevImage(null), 800);
+          }}
           style={{
             position: "absolute",
             width: "100%",
             height: "100%",
             objectFit: "contain",
             opacity: loaded ? 1 : 0,
-            transition: "opacity 0.6s cubic-bezier(0.4,0,0.2,1)",
+            transform: loaded ? "scale(1)" : "scale(1.01)",
+            transition:
+              "opacity 0.75s cubic-bezier(0.22,1,0.36,1), transform 0.75s cubic-bezier(0.22,1,0.36,1)",
             pointerEvents: "none",
           }}
         />
       </div>
 
       {/* TEXT */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 20,
-          left: 20,
-        }}
-      >
+      <div style={{ position: "absolute", bottom: 20, left: 20 }}>
         <div style={textPrimary}>{gallery.title}</div>
-
         {gallery.subtitle && (
-          <div style={{ ...textPrimary, ...textSecondary }}>
-            {gallery.subtitle}
-          </div>
+          <div style={{ ...textPrimary, ...textSecondary }}>{gallery.subtitle}</div>
         )}
-
         <div style={{ ...textPrimary, ...textTertiary }}>
           {iIndex + 1}/{images.length}
         </div>
