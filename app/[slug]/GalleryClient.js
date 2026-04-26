@@ -68,9 +68,16 @@ export default function GalleryClient({ galleries, currentIndex }) {
   }, [iIndex, images]);
 
   function next() {
-  setLoaded(false);
-  setIIndex(iIndex + 1);
-}
+    setPrevImage(image);
+    setLoaded(false);
+
+    if (iIndex < images.length - 1) {
+      setIIndex(iIndex + 1);
+    } else {
+      const nextGallery = (gIndex + 1) % galleries.length;
+      router.push(`/${galleries[nextGallery].slug}`);
+    }
+  }
 
   function prev() {
     setPrevImage(image);
@@ -256,16 +263,23 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
         {/* CURRENT */}
         <img
-  key={image._key}
-  src={urlFor(image).width(2000).url()}
-  onLoad={() => setLoaded(true)}
-  style={{
-    maxWidth: "90%",
-    maxHeight: "90%",
-    objectFit: "contain",
-    opacity: loaded ? 1 : 0,
-    transition: "opacity 0.6s cubic-bezier(0.22,1,0.36,1)",
-  }}
+          key={image._key}
+          src={urlFor(image).width(2000).url()}
+          onLoad={() => {
+            requestAnimationFrame(() => setLoaded(true));
+            setTimeout(() => setPrevImage(null), 750);
+          }}
+          style={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            opacity: loaded ? 1 : 0,
+            transform: loaded ? "scale(1)" : "scale(1.01)",
+            transition:
+              "opacity 0.75s cubic-bezier(0.22,1,0.36,1), transform 0.75s cubic-bezier(0.22,1,0.36,1)",
+            pointerEvents: "none",
+          }}
         />
       </div>
 
