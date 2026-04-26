@@ -1,23 +1,33 @@
+import GalleryClient from "./GalleryClient";
 import { client } from "@/lib/sanity";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
-export default async function Home() {
+export default async function Page({ params }) {
+  const { slug } = params;
+
   const galleries = await client.fetch(`
     *[_type == "gallery"] | order(order asc) {
-      "slug": slug.current
+      title,
+      subtitle,
+      "slug": slug.current,
+      images
     }
   `);
 
-  // leia esimene, millel on päris slug
-  const firstGallery = galleries?.find(
-    (g) => g.slug && g.slug !== "undefined"
+  // leia õige galerii
+  const currentIndex = galleries.findIndex(
+    (g) => g.slug === slug
   );
 
-  // kui ei leia → ära redirecti (väldib loopi)
-  if (!firstGallery) {
-    return <div>No valid gallery</div>;
+  // ❌ kui ei leia → 404 (MITTE redirect!)
+  if (currentIndex === -1) {
+    notFound();
   }
 
-  // 🔥 redirect ainult siis kui slug on olemas
-  redirect(`/${firstGallery.slug}`);
+  return (
+    <GalleryClient
+      galleries={galleries}
+      currentIndex={currentIndex}
+    />
+  );
 }
