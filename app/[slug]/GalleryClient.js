@@ -28,7 +28,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
   const [iIndex, setIIndex] = useState(0);
   const [showIndex, setShowIndex] = useState(false);
 
-  // 🔥 crossfade state
   const [prevImage, setPrevImage] = useState(null);
   const [loaded, setLoaded] = useState(true);
 
@@ -119,7 +118,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     if (distance < -minSwipeDistance) prev();
   };
 
-  // 📚 INDEX VIEW
+  // INDEX VIEW
   if (showIndex) {
     return (
       <div
@@ -183,7 +182,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
     );
   }
 
-  // 🎞️ SLIDESHOW
   return (
     <div
       onTouchStart={onTouchStart}
@@ -224,6 +222,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
           top: "5%",
           width: "50%",
           height: "90%",
+          zIndex: 5,
         }}
       />
 
@@ -235,18 +234,19 @@ export default function GalleryClient({ galleries, currentIndex }) {
           top: "5%",
           width: "50%",
           height: "90%",
+          zIndex: 5,
         }}
       />
 
-      {/* 🔥 CROSSFADE IMAGE */}
+      {/* CROSSFADE */}
       <div
         style={{
           position: "relative",
           width: "90%",
           height: "90%",
+          zIndex: 1,
         }}
       >
-        {/* previous */}
         {prevImage && (
           <img
             src={urlFor(prevImage).width(2000).url()}
@@ -255,11 +255,11 @@ export default function GalleryClient({ galleries, currentIndex }) {
               width: "100%",
               height: "100%",
               objectFit: "contain",
+              pointerEvents: "none", // 🔥 oluline fix
             }}
           />
         )}
 
-        {/* current */}
         <img
           key={image._key}
           src={urlFor(image).width(2000).url()}
@@ -271,6 +271,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
             objectFit: "contain",
             opacity: loaded ? 1 : 0,
             transition: "opacity 0.6s cubic-bezier(0.4,0,0.2,1)",
+            pointerEvents: "none", // 🔥 oluline fix
           }}
         />
       </div>
