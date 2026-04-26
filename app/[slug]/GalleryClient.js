@@ -26,6 +26,8 @@ export default function GalleryClient({ galleries, currentIndex }) {
   const textTertiary = { color: "rgba(0,0,0,0.6)" };
 
   const [gIndex] = useState(currentIndex || 0);
+  const [showIndex, setShowIndex] = useState(false);
+  const [visible, setVisible] = useState(true);
 
   const gallery = galleries[gIndex];
 
@@ -35,59 +37,49 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const images = gallery.images;
 
-  // 👉 URL-ist image index
-  const getIndexFromUrl = () =>
-    Math.min(
-      Math.max(parseInt(searchParams.get("image") || "0", 10), 0),
+  // 🔥 URL param (robust)
+  const imageParam = searchParams.get("image");
+
+  const [iIndex, setIIndex] = useState(0);
+
+  // 🔥 SYNC URL → STATE (FIX)
+  useEffect(() => {
+    const newIndex = Math.min(
+      Math.max(parseInt(imageParam || "0", 10), 0),
       images.length - 1
     );
 
-  const [iIndex, setIIndex] = useState(getIndexFromUrl());
-  const [showIndex, setShowIndex] = useState(false);
-  const [visible, setVisible] = useState(true);
-
-  const image = images[iIndex];
-
-  // 🔥 SYNC URL → STATE (back/forward)
-  useEffect(() => {
-    const newIndex = getIndexFromUrl();
+    setVisible(false);
     setIIndex(newIndex);
-  }, [searchParams]);
 
-  // 🔥 UPDATE URL (shallow)
+    requestAnimationFrame(() => {
+      setVisible(true);
+    });
+  }, [imageParam, images.length]);
+
   function updateUrl(index) {
     router.replace(`/${gallery.slug}?image=${index}`);
   }
 
   function next() {
-    setVisible(false);
-
-    setTimeout(() => {
-      if (iIndex < images.length - 1) {
-        const newIndex = iIndex + 1;
-        setIIndex(newIndex);
-        updateUrl(newIndex);
-      } else {
-        const nextGallery = (gIndex + 1) % galleries.length;
-        router.push(`/${galleries[nextGallery].slug}`);
-      }
-    }, 40);
+    if (iIndex < images.length - 1) {
+      const newIndex = iIndex + 1;
+      updateUrl(newIndex);
+    } else {
+      const nextGallery = (gIndex + 1) % galleries.length;
+      router.push(`/${galleries[nextGallery].slug}`);
+    }
   }
 
   function prev() {
-    setVisible(false);
-
-    setTimeout(() => {
-      if (iIndex > 0) {
-        const newIndex = iIndex - 1;
-        setIIndex(newIndex);
-        updateUrl(newIndex);
-      } else {
-        const prevGallery =
-          (gIndex - 1 + galleries.length) % galleries.length;
-        router.push(`/${galleries[prevGallery].slug}`);
-      }
-    }, 40);
+    if (iIndex > 0) {
+      const newIndex = iIndex - 1;
+      updateUrl(newIndex);
+    } else {
+      const prevGallery =
+        (gIndex - 1 + galleries.length) % galleries.length;
+      router.push(`/${galleries[prevGallery].slug}`);
+    }
   }
 
   // keyboard
@@ -185,6 +177,8 @@ export default function GalleryClient({ galleries, currentIndex }) {
       </div>
     );
   }
+
+  const image = images[iIndex];
 
   // 🎞️ SLIDESHOW
   return (
