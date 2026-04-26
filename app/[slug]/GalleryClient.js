@@ -8,19 +8,16 @@ import { useRouter } from "next/navigation";
 export default function GalleryClient({ galleries, currentIndex }) {
   const router = useRouter();
 
-  // 🔒 safety
   if (!galleries || galleries.length === 0) {
     return <div style={{ padding: 40 }}>No galleries</div>;
   }
 
-  const [gIndex, setGIndex] = useState(currentIndex || 0);
+  const [gIndex] = useState(currentIndex || 0);
   const [iIndex, setIIndex] = useState(0);
   const [showIndex, setShowIndex] = useState(false);
-  const [loaded, setLoaded] = useState(false);
 
-  // swipe
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
+  // 🔥 FIX: esimene render visible
+  const [loaded, setLoaded] = useState(true);
 
   const gallery = galleries[gIndex];
 
@@ -54,6 +51,13 @@ export default function GalleryClient({ galleries, currentIndex }) {
     }
   }
 
+  // 🔥 ainult järgmistel piltidel fade
+  useEffect(() => {
+    if (iIndex !== 0) {
+      setLoaded(false);
+    }
+  }, [iIndex]);
+
   // preload
   useEffect(() => {
     const nextImg = images[iIndex + 1];
@@ -85,6 +89,8 @@ export default function GalleryClient({ galleries, currentIndex }) {
   });
 
   // swipe
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
   const minSwipeDistance = 50;
 
   const onTouchStart = (e) => {
@@ -105,29 +111,19 @@ export default function GalleryClient({ galleries, currentIndex }) {
     if (distance < -minSwipeDistance) prev();
   };
 
-  // 🧩 INDEX VIEW
+  // INDEX
   if (showIndex) {
     return (
-      <div
-        style={{
-          width: "100vw",
-          height: "100vh",
-          background: "#fff",
-          overflowY: "auto",
-          padding: "5%",
-        }}
-      >
+      <div style={{ padding: "5%", background: "#fff" }}>
         <div
           onClick={() => setShowIndex(false)}
           style={{
             position: "fixed",
             top: 20,
             right: 20,
-            cursor: "pointer",
             fontSize: "10px",
+            cursor: "pointer",
             textTransform: "uppercase",
-            color: "#000",
-            zIndex: 10,
           }}
         >
           Close
@@ -150,7 +146,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
                   fontSize: "10px",
                   textTransform: "uppercase",
                   marginTop: "40px",
-                  color: "#000",
                 }}
               >
                 <div>{g.title}</div>
@@ -161,13 +156,10 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
               {g.images.map((img, iIdx) => (
                 <img
-                  key={`${g.slug}-${iIdx}`}
+                  key={iIdx}
                   src={urlFor(img).width(1200).url()}
                   onClick={() => router.push(`/${g.slug}`)}
-                  style={{
-                    width: "100%",
-                    cursor: "pointer",
-                  }}
+                  style={{ width: "100%", cursor: "pointer" }}
                 />
               ))}
             </React.Fragment>
@@ -177,7 +169,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
     );
   }
 
-  // 🎞️ SLIDESHOW
   return (
     <div
       onTouchStart={onTouchStart}
@@ -194,7 +185,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
         touchAction: "pan-y",
       }}
     >
-      {/* INDEX BUTTON */}
+      {/* INDEX */}
       <div
         onClick={() => setShowIndex(true)}
         style={{
@@ -204,7 +195,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
           fontSize: "10px",
           cursor: "pointer",
           textTransform: "uppercase",
-          color: "#000",
           zIndex: 10,
         }}
       >
@@ -220,7 +210,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
           top: "5%",
           width: "50%",
           height: "90%",
-          zIndex: 1,
         }}
       />
 
@@ -232,7 +221,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
           top: "5%",
           width: "50%",
           height: "90%",
-          zIndex: 1,
         }}
       />
 
@@ -246,7 +234,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
           maxHeight: "90%",
           objectFit: "contain",
           opacity: loaded ? 1 : 0,
-          transition: "opacity 0.3s ease",
+          transition: "opacity 0.35s ease",
         }}
       />
 
@@ -258,13 +246,10 @@ export default function GalleryClient({ galleries, currentIndex }) {
           left: 20,
           fontSize: "10px",
           textTransform: "uppercase",
-          color: "#000",
         }}
       >
         <div>{gallery.title}</div>
-        {gallery.subtitle && (
-          <div style={{ opacity: 0.6 }}>{gallery.subtitle}</div>
-        )}
+        {gallery.subtitle && <div>{gallery.subtitle}</div>}
         <div>
           {iIndex + 1}/{images.length}
         </div>
