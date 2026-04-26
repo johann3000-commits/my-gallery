@@ -256,12 +256,13 @@ export default function GalleryClient({ galleries, currentIndex }) {
         src={urlFor(image).width(2000).url()}
         onLoad={() => setLoaded(true)}
         style={{
-          maxWidth: "90%",
-          maxHeight: "90%",
-          objectFit: "contain",
-          opacity: loaded ? 1 : 0,
-          transition: "opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
-        }}
+  maxWidth: "90%",
+  maxHeight: "90%",
+  objectFit: "contain",
+  opacity: loaded ? 1 : 0,
+  transform: loaded ? "scale(1)" : "scale(1.01)",
+  transition: "opacity 0.6s cubic-bezier(0.4,0,0.2,1), transform 0.6s cubic-bezier(0.4,0,0.2,1)",
+}}
       />
 
       {/* TEXT */}
