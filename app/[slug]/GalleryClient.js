@@ -14,15 +14,15 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   // 🎨 TYPE
   const textPrimary = {
-    color: "#000",
+    color: "#FFFFFF",
     fontSize: "10px",
     textTransform: "uppercase",
     fontFamily: "Arial, Helvetica, sans-serif",
     letterSpacing: "0.5px",
   };
 
-  const textSecondary = { color: "rgba(0,0,0,0.3)" };
-  const textTertiary = { color: "rgba(0,0,0,0.6)" };
+  const textSecondary = { color: "rgba(255, 255, 255, 0.3)" };
+  const textTertiary = { color: "rgba(255, 255, 255, 0.6)" };
 
   const [gIndex] = useState(currentIndex || 0);
   const [iIndex, setIIndex] = useState(0);
@@ -101,7 +101,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
         style={{
           width: "100vw",
           height: "100vh",
-          background: "#fff",
+          background: "#000000",
           overflowY: "auto",
           padding: "5%",
         }}
