@@ -12,13 +12,13 @@ export default function GalleryClient({ galleries, currentIndex }) {
   const [iIndex, setIIndex] = useState(0);
   const [showIndex, setShowIndex] = useState(false);
 
-  // 👉 SWIPE STATE
+  // SWIPE
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
 
   const gallery = galleries[gIndex];
 
-  if (!gallery || !gallery.images || gallery.images.length === 0) {
+  if (!gallery || !gallery.images?.length) {
     return <div>No images</div>;
   }
 
@@ -44,7 +44,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     }
   }
 
-  // 👉 PRELOAD järgmine pilt
+  // preload next
   useEffect(() => {
     const nextIndex = iIndex + 1;
     if (images[nextIndex]) {
@@ -53,7 +53,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     }
   }, [iIndex, images]);
 
-  // 👉 KEYBOARD NAV
+  // keyboard
   useEffect(() => {
     const handler = (e) => {
       if (showIndex) return;
@@ -67,7 +67,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     return () => window.removeEventListener("keydown", handler);
   });
 
-  // 👉 SWIPE LOGIC
+  // swipe logic
   const minSwipeDistance = 50;
 
   const onTouchStart = (e) => {
@@ -84,11 +84,11 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
     const distance = touchStart - touchEnd;
 
-    if (distance > minSwipeDistance) next(); // vasak
-    if (distance < -minSwipeDistance) prev(); // parem
+    if (distance > minSwipeDistance) next();
+    if (distance < -minSwipeDistance) prev();
   };
 
-  // 🔳 INDEX VIEW
+  // INDEX VIEW
   if (showIndex) {
     return (
       <div
@@ -117,7 +117,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
           Close
         </div>
 
-        {/* GRID */}
+        {/* Grid */}
         <div
           style={{
             display: "grid",
@@ -127,7 +127,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
         >
           {galleries.map((g) => (
             <React.Fragment key={g.slug}>
-              {/* TITLE + SUBTITLE */}
               <div
                 style={{
                   gridColumn: "1 / -1",
@@ -153,7 +152,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
                   onClick={() => router.push(`/${g.slug}`)}
                   style={{
                     width: "100%",
-                    height: "auto",
                     display: "block",
                     cursor: "pointer",
                   }}
@@ -166,7 +164,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     );
   }
 
-  // 🎞️ SLIDESHOW
+  // SLIDESHOW
   return (
     <div
       onTouchStart={onTouchStart}
@@ -183,7 +181,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
         touchAction: "pan-y",
       }}
     >
-      {/* INDEX */}
+      {/* INDEX BUTTON */}
       <div
         onClick={() => setShowIndex(true)}
         style={{
@@ -194,34 +192,37 @@ export default function GalleryClient({ galleries, currentIndex }) {
           fontSize: "10px",
           textTransform: "uppercase",
           color: "#000",
+          zIndex: 10, // 👈 oluline fix
         }}
       >
         Index
       </div>
 
-      {/* CLICK LEFT */}
+      {/* LEFT CLICK */}
       <div
         onClick={prev}
         style={{
           position: "absolute",
           left: 0,
-          top: 0,
+          top: "5%",
           width: "50%",
-          height: "100%",
+          height: "90%",
           cursor: "w-resize",
+          zIndex: 1,
         }}
       />
 
-      {/* CLICK RIGHT */}
+      {/* RIGHT CLICK */}
       <div
         onClick={next}
         style={{
           position: "absolute",
           right: 0,
-          top: 0,
+          top: "5%",
           width: "50%",
-          height: "100%",
+          height: "90%",
           cursor: "e-resize",
+          zIndex: 1,
         }}
       />
 
