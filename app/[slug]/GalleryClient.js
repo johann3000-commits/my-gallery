@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { urlFor } from "@/lib/sanity";
 import React from "react";
 import { useRouter } from "next/navigation";
@@ -28,11 +28,8 @@ export default function GalleryClient({ galleries, currentIndex }) {
   const [iIndex, setIIndex] = useState(0);
   const [showIndex, setShowIndex] = useState(false);
 
-  const [prevImage, setPrevImage] = useState(null);
-  const [loaded, setLoaded] = useState(true);
-
-  // 🔥 IMAGE CACHE
-  const imageCache = useRef(new Set());
+  // 👉 minimal motion state
+  const [visible, setVisible] = useState(true);
 
   const gallery = galleries[gIndex];
 
@@ -43,53 +40,31 @@ export default function GalleryClient({ galleries, currentIndex }) {
   const images = gallery.images;
   const image = images[iIndex];
 
-  // 🔧 PRELOAD FUNCTION
-  function preloadImage(img) {
-    const url = urlFor(img).width(2000).url();
-
-    if (imageCache.current.has(url)) return;
-
-    const imgEl = new Image();
-    imgEl.src = url;
-
-    imageCache.current.add(url);
-  }
-
-  // 🔥 SMART PRELOAD
-  useEffect(() => {
-    const range = 3;
-
-    for (let i = -range; i <= range; i++) {
-      const index = iIndex + i;
-      if (images[index]) {
-        preloadImage(images[index]);
-      }
-    }
-  }, [iIndex, images]);
-
   function next() {
-    setPrevImage(image);
-    setLoaded(false);
+    setVisible(false);
 
-    if (iIndex < images.length - 1) {
-      setIIndex(iIndex + 1);
-    } else {
-      const nextGallery = (gIndex + 1) % galleries.length;
-      router.push(`/${galleries[nextGallery].slug}`);
-    }
+    setTimeout(() => {
+      if (iIndex < images.length - 1) {
+        setIIndex((i) => i + 1);
+      } else {
+        const nextGallery = (gIndex + 1) % galleries.length;
+        router.push(`/${galleries[nextGallery].slug}`);
+      }
+    }, 40); // tiny delay (important)
   }
 
   function prev() {
-    setPrevImage(image);
-    setLoaded(false);
+    setVisible(false);
 
-    if (iIndex > 0) {
-      setIIndex(iIndex - 1);
-    } else {
-      const prevGallery =
-        (gIndex - 1 + galleries.length) % galleries.length;
-      router.push(`/${galleries[prevGallery].slug}`);
-    }
+    setTimeout(() => {
+      if (iIndex > 0) {
+        setIIndex((i) => i - 1);
+      } else {
+        const prevGallery =
+          (gIndex - 1 + galleries.length) % galleries.length;
+        router.push(`/${galleries[prevGallery].slug}`);
+      }
+    }, 40);
   }
 
   // keyboard
@@ -109,6 +84,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
   // swipe
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
+
   const minSwipeDistance = 50;
 
   const onTouchStart = (e) => {
@@ -122,12 +98,14 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
+
     const distance = touchStart - touchEnd;
+
     if (distance > minSwipeDistance) next();
     if (distance < -minSwipeDistance) prev();
   };
 
-  // 📚 INDEX
+  // INDEX
   if (showIndex) {
     return (
       <div style={{ padding: "5%", background: "#fff" }}>
@@ -239,49 +217,19 @@ export default function GalleryClient({ galleries, currentIndex }) {
       />
 
       {/* IMAGE */}
-      <div
+      <img
+        key={image._key}
+        src={urlFor(image).width(2000).url()}
+        onLoad={() => setVisible(true)}
         style={{
-          position: "relative",
-          width: "90%",
-          height: "90%",
-          background: "#fff",
+          maxWidth: "90%",
+          maxHeight: "90%",
+          objectFit: "contain",
+          opacity: visible ? 1 : 0,
+          transform: visible ? "scale(1)" : "scale(0.995)",
+          transition: "opacity 0.25s ease-out, transform 0.25s ease-out",
         }}
-      >
-        {/* PREVIOUS */}
-        {prevImage && (
-          <img
-            src={urlFor(prevImage).width(2000).url()}
-            style={{
-              position: "absolute",
-              width: "100%",
-              height: "100%",
-              objectFit: "contain",
-              pointerEvents: "none",
-            }}
-          />
-        )}
-
-        {/* CURRENT */}
-        <img
-          key={image._key}
-          src={urlFor(image).width(2000).url()}
-          onLoad={() => {
-            requestAnimationFrame(() => setLoaded(true));
-            setTimeout(() => setPrevImage(null), 750);
-          }}
-          style={{
-            position: "absolute",
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-            opacity: loaded ? 1 : 0,
-            transform: loaded ? "scale(1)" : "scale(1.01)",
-            transition:
-              "opacity 0.75s cubic-bezier(0.22,1,0.36,1)",
-            pointerEvents: "none",
-          }}
-        />
-      </div>
+      />
 
       {/* TEXT */}
       <div style={{ position: "absolute", bottom: 20, left: 20 }}>
