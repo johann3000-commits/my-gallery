@@ -27,15 +27,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const [gIndex] = useState(currentIndex || 0);
 
-  // 👉 loe URL-ist image index
-  const initialImage = parseInt(searchParams.get("image") || "0", 10);
-
-  const [iIndex, setIIndex] = useState(initialImage);
-  const [showIndex, setShowIndex] = useState(false);
-
-  // minimal motion
-  const [visible, setVisible] = useState(true);
-
   const gallery = galleries[gIndex];
 
   if (!gallery || !gallery.images?.length) {
@@ -43,14 +34,39 @@ export default function GalleryClient({ galleries, currentIndex }) {
   }
 
   const images = gallery.images;
+
+  // 👉 URL-ist image index
+  const getIndexFromUrl = () =>
+    Math.min(
+      Math.max(parseInt(searchParams.get("image") || "0", 10), 0),
+      images.length - 1
+    );
+
+  const [iIndex, setIIndex] = useState(getIndexFromUrl());
+  const [showIndex, setShowIndex] = useState(false);
+  const [visible, setVisible] = useState(true);
+
   const image = images[iIndex];
+
+  // 🔥 SYNC URL → STATE (back/forward)
+  useEffect(() => {
+    const newIndex = getIndexFromUrl();
+    setIIndex(newIndex);
+  }, [searchParams]);
+
+  // 🔥 UPDATE URL (shallow)
+  function updateUrl(index) {
+    router.replace(`/${gallery.slug}?image=${index}`);
+  }
 
   function next() {
     setVisible(false);
 
     setTimeout(() => {
       if (iIndex < images.length - 1) {
-        setIIndex((i) => i + 1);
+        const newIndex = iIndex + 1;
+        setIIndex(newIndex);
+        updateUrl(newIndex);
       } else {
         const nextGallery = (gIndex + 1) % galleries.length;
         router.push(`/${galleries[nextGallery].slug}`);
@@ -63,7 +79,9 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
     setTimeout(() => {
       if (iIndex > 0) {
-        setIIndex((i) => i - 1);
+        const newIndex = iIndex - 1;
+        setIIndex(newIndex);
+        updateUrl(newIndex);
       } else {
         const prevGallery =
           (gIndex - 1 + galleries.length) % galleries.length;
