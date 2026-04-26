@@ -12,6 +12,10 @@ export default function GalleryClient({ galleries, currentIndex }) {
   const [iIndex, setIIndex] = useState(0);
   const [showIndex, setShowIndex] = useState(false);
 
+  // 👉 SWIPE STATE
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+
   const gallery = galleries[gIndex];
 
   if (!gallery || !gallery.images || gallery.images.length === 0) {
@@ -40,7 +44,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     }
   }
 
-  // preload järgmine
+  // 👉 PRELOAD järgmine pilt
   useEffect(() => {
     const nextIndex = iIndex + 1;
     if (images[nextIndex]) {
@@ -49,7 +53,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     }
   }, [iIndex, images]);
 
-  // keyboard
+  // 👉 KEYBOARD NAV
   useEffect(() => {
     const handler = (e) => {
       if (showIndex) return;
@@ -62,6 +66,27 @@ export default function GalleryClient({ galleries, currentIndex }) {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   });
+
+  // 👉 SWIPE LOGIC
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+
+    if (distance > minSwipeDistance) next(); // vasak
+    if (distance < -minSwipeDistance) prev(); // parem
+  };
 
   // 🔳 INDEX VIEW
   if (showIndex) {
@@ -83,7 +108,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
             top: 20,
             right: 20,
             cursor: "pointer",
-            fontFamily: "Arial, Helvetica, sans-serif",
             fontSize: "10px",
             textTransform: "uppercase",
             color: "#000",
@@ -101,7 +125,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
             gap: "20px",
           }}
         >
-          {galleries.map((g, gIdx) => (
+          {galleries.map((g) => (
             <React.Fragment key={g.slug}>
               {/* TITLE + SUBTITLE */}
               <div
@@ -109,32 +133,24 @@ export default function GalleryClient({ galleries, currentIndex }) {
                   gridColumn: "1 / -1",
                   display: "flex",
                   gap: "12px",
-                  alignItems: "baseline",
-                  fontFamily: "Arial, Helvetica, sans-serif",
                   fontSize: "10px",
                   textTransform: "uppercase",
-                  marginTop: gIdx === 0 ? "0" : "40px",
+                  marginTop: "40px",
                   marginBottom: "10px",
                   color: "#000",
                 }}
               >
                 <div>{g.title}</div>
-
                 {g.subtitle && (
-                  <div style={{ opacity: 0.5 }}>
-                    {g.subtitle}
-                  </div>
+                  <div style={{ opacity: 0.5 }}>{g.subtitle}</div>
                 )}
               </div>
 
-              {/* IMAGES */}
               {g.images.map((img, iIdx) => (
                 <img
                   key={`${g.slug}-${iIdx}`}
                   src={urlFor(img).width(1200).url()}
-                  onClick={() => {
-                    router.push(`/${g.slug}`);
-                  }}
+                  onClick={() => router.push(`/${g.slug}`)}
                   style={{
                     width: "100%",
                     height: "auto",
@@ -153,6 +169,9 @@ export default function GalleryClient({ galleries, currentIndex }) {
   // 🎞️ SLIDESHOW
   return (
     <div
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
       style={{
         width: "100vw",
         height: "100vh",
@@ -161,6 +180,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
         alignItems: "center",
         justifyContent: "center",
         position: "relative",
+        touchAction: "pan-y",
       }}
     >
       {/* INDEX */}
@@ -171,17 +191,15 @@ export default function GalleryClient({ galleries, currentIndex }) {
           top: 20,
           right: 20,
           cursor: "pointer",
-          fontFamily: "Arial, Helvetica, sans-serif",
           fontSize: "10px",
           textTransform: "uppercase",
           color: "#000",
-          zIndex: 10,
         }}
       >
         Index
       </div>
 
-      {/* LEFT */}
+      {/* CLICK LEFT */}
       <div
         onClick={prev}
         style={{
@@ -191,11 +209,10 @@ export default function GalleryClient({ galleries, currentIndex }) {
           width: "50%",
           height: "100%",
           cursor: "w-resize",
-          zIndex: 1,
         }}
       />
 
-      {/* RIGHT */}
+      {/* CLICK RIGHT */}
       <div
         onClick={next}
         style={{
@@ -205,7 +222,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
           width: "50%",
           height: "100%",
           cursor: "e-resize",
-          zIndex: 1,
         }}
       />
 
@@ -236,21 +252,15 @@ export default function GalleryClient({ galleries, currentIndex }) {
           position: "absolute",
           bottom: 20,
           left: 20,
-          color: "#000",
-          fontFamily: "Arial, Helvetica, sans-serif",
           fontSize: "10px",
           textTransform: "uppercase",
-          letterSpacing: "0.5px",
+          color: "#000",
         }}
       >
         <div>{gallery.title}</div>
-
         {gallery.subtitle && (
-          <div style={{ opacity: 0.6 }}>
-            {gallery.subtitle}
-          </div>
+          <div style={{ opacity: 0.6 }}>{gallery.subtitle}</div>
         )}
-
         <div>
           {iIndex + 1}/{images.length}
         </div>
