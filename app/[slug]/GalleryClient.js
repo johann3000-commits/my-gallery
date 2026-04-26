@@ -260,7 +260,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
           maxHeight: "90%",
           objectFit: "contain",
           opacity: loaded ? 1 : 0,
-          transition: "opacity 0.35s ease",
+          transition: "opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
         }}
       />
 
