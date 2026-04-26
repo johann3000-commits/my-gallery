@@ -18,7 +18,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     fontSize: "10px",
     textTransform: "uppercase",
     fontFamily: "Arial, Helvetica, sans-serif",
-    letterSpacing: "0.5px",
+    letterSpacing: "0px",
   };
 
   const textSecondary = {
