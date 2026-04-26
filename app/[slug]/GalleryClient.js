@@ -170,7 +170,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
       style={{
         width: "100vw",
         height: "100vh",
-        background: "#fff",
+        background: "#000000",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
