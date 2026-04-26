@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react";
 import { urlFor } from "@/lib/sanity";
 import React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function GalleryClient({ galleries, currentIndex }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   if (!galleries || galleries.length === 0) {
     return <div style={{ padding: 40 }}>No galleries</div>;
@@ -25,10 +26,14 @@ export default function GalleryClient({ galleries, currentIndex }) {
   const textTertiary = { color: "rgba(0,0,0,0.6)" };
 
   const [gIndex] = useState(currentIndex || 0);
-  const [iIndex, setIIndex] = useState(0);
+
+  // 👉 loe URL-ist image index
+  const initialImage = parseInt(searchParams.get("image") || "0", 10);
+
+  const [iIndex, setIIndex] = useState(initialImage);
   const [showIndex, setShowIndex] = useState(false);
 
-  // 👉 minimal motion state
+  // minimal motion
   const [visible, setVisible] = useState(true);
 
   const gallery = galleries[gIndex];
@@ -50,7 +55,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
         const nextGallery = (gIndex + 1) % galleries.length;
         router.push(`/${galleries[nextGallery].slug}`);
       }
-    }, 40); // tiny delay (important)
+    }, 40);
   }
 
   function prev() {
@@ -105,7 +110,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     if (distance < -minSwipeDistance) prev();
   };
 
-  // INDEX
+  // 📚 INDEX
   if (showIndex) {
     return (
       <div style={{ padding: "5%", background: "#fff" }}>
@@ -148,9 +153,11 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
               {g.images.map((img, iIdx) => (
                 <img
-                  key={iIdx}
+                  key={`${g.slug}-${iIdx}`}
                   src={urlFor(img).width(1200).url()}
-                  onClick={() => router.push(`/${g.slug}`)}
+                  onClick={() =>
+                    router.push(`/${g.slug}?image=${iIdx}`)
+                  }
                   style={{ width: "100%", cursor: "pointer" }}
                 />
               ))}
