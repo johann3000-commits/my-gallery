@@ -277,7 +277,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
             opacity: loaded ? 1 : 0,
             transform: loaded ? "scale(1)" : "scale(1.01)",
             transition:
-              "opacity 0.75s cubic-bezier(0.22,1,0.36,1), transform 0.75s cubic-bezier(0.22,1,0.36,1)",
+              "opacity 0.75s cubic-bezier(0.22,1,0.36,1)",
             pointerEvents: "none",
           }}
         />
