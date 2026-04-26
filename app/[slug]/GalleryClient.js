@@ -12,20 +12,19 @@ export default function GalleryClient({ galleries, currentIndex }) {
   const [iIndex, setIIndex] = useState(0);
   const [showIndex, setShowIndex] = useState(false);
 
-  // SWIPE
+  const [loaded, setLoaded] = useState(false);
+
+  // swipe
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
 
   const gallery = galleries[gIndex];
-
-  if (!gallery || !gallery.images?.length) {
-    return <div>No images</div>;
-  }
-
   const images = gallery.images;
   const image = images[iIndex];
 
   function next() {
+    setLoaded(false);
+
     if (iIndex < images.length - 1) {
       setIIndex(iIndex + 1);
     } else {
@@ -35,6 +34,8 @@ export default function GalleryClient({ galleries, currentIndex }) {
   }
 
   function prev() {
+    setLoaded(false);
+
     if (iIndex > 0) {
       setIIndex(iIndex - 1);
     } else {
@@ -44,12 +45,19 @@ export default function GalleryClient({ galleries, currentIndex }) {
     }
   }
 
-  // preload next
+  // preload NEXT + PREV
   useEffect(() => {
-    const nextIndex = iIndex + 1;
-    if (images[nextIndex]) {
+    const nextImg = images[iIndex + 1];
+    const prevImg = images[iIndex - 1];
+
+    if (nextImg) {
       const img = new Image();
-      img.src = urlFor(images[nextIndex]).width(2000).url();
+      img.src = urlFor(nextImg).width(2000).url();
+    }
+
+    if (prevImg) {
+      const img = new Image();
+      img.src = urlFor(prevImg).width(2000).url();
     }
   }, [iIndex, images]);
 
@@ -67,7 +75,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     return () => window.removeEventListener("keydown", handler);
   });
 
-  // swipe logic
+  // swipe
   const minSwipeDistance = 50;
 
   const onTouchStart = (e) => {
@@ -88,19 +96,10 @@ export default function GalleryClient({ galleries, currentIndex }) {
     if (distance < -minSwipeDistance) prev();
   };
 
-  // INDEX VIEW
+  // INDEX
   if (showIndex) {
     return (
-      <div
-        style={{
-          width: "100vw",
-          height: "100vh",
-          background: "#fff",
-          overflowY: "auto",
-          padding: "5%",
-        }}
-      >
-        {/* Close */}
+      <div style={{ padding: "5%", background: "#fff" }}>
         <div
           onClick={() => setShowIndex(false)}
           style={{
@@ -110,14 +109,12 @@ export default function GalleryClient({ galleries, currentIndex }) {
             cursor: "pointer",
             fontSize: "10px",
             textTransform: "uppercase",
-            color: "#000",
             zIndex: 10,
           }}
         >
           Close
         </div>
 
-        {/* Grid */}
         <div
           style={{
             display: "grid",
@@ -135,8 +132,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
                   fontSize: "10px",
                   textTransform: "uppercase",
                   marginTop: "40px",
-                  marginBottom: "10px",
-                  color: "#000",
                 }}
               >
                 <div>{g.title}</div>
@@ -147,14 +142,10 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
               {g.images.map((img, iIdx) => (
                 <img
-                  key={`${g.slug}-${iIdx}`}
+                  key={iIdx}
                   src={urlFor(img).width(1200).url()}
                   onClick={() => router.push(`/${g.slug}`)}
-                  style={{
-                    width: "100%",
-                    display: "block",
-                    cursor: "pointer",
-                  }}
+                  style={{ width: "100%", cursor: "pointer" }}
                 />
               ))}
             </React.Fragment>
@@ -164,7 +155,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
     );
   }
 
-  // SLIDESHOW
   return (
     <div
       onTouchStart={onTouchStart}
@@ -178,27 +168,24 @@ export default function GalleryClient({ galleries, currentIndex }) {
         alignItems: "center",
         justifyContent: "center",
         position: "relative",
-        touchAction: "pan-y",
       }}
     >
-      {/* INDEX BUTTON */}
+      {/* INDEX */}
       <div
         onClick={() => setShowIndex(true)}
         style={{
           position: "absolute",
           top: 20,
           right: 20,
-          cursor: "pointer",
           fontSize: "10px",
-          textTransform: "uppercase",
-          color: "#000",
-          zIndex: 10, // 👈 oluline fix
+          cursor: "pointer",
+          zIndex: 10,
         }}
       >
         Index
       </div>
 
-      {/* LEFT CLICK */}
+      {/* CLICK AREAS */}
       <div
         onClick={prev}
         style={{
@@ -208,11 +195,9 @@ export default function GalleryClient({ galleries, currentIndex }) {
           width: "50%",
           height: "90%",
           cursor: "w-resize",
-          zIndex: 1,
         }}
       />
 
-      {/* RIGHT CLICK */}
       <div
         onClick={next}
         style={{
@@ -222,30 +207,22 @@ export default function GalleryClient({ galleries, currentIndex }) {
           width: "50%",
           height: "90%",
           cursor: "e-resize",
-          zIndex: 1,
         }}
       />
 
-      {/* IMAGE */}
-      <div
+      {/* IMAGE + FADE */}
+      <img
+        key={image._key}
+        src={urlFor(image).width(2000).url()}
+        onLoad={() => setLoaded(true)}
         style={{
-          width: "90%",
-          height: "90%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          maxWidth: "90%",
+          maxHeight: "90%",
+          objectFit: "contain",
+          opacity: loaded ? 1 : 0,
+          transition: "opacity 0.3s ease",
         }}
-      >
-        <img
-          src={urlFor(image).width(2000).url()}
-          alt=""
-          style={{
-            maxWidth: "100%",
-            maxHeight: "100%",
-            objectFit: "contain",
-          }}
-        />
-      </div>
+      />
 
       {/* TEXT */}
       <div
@@ -255,13 +232,10 @@ export default function GalleryClient({ galleries, currentIndex }) {
           left: 20,
           fontSize: "10px",
           textTransform: "uppercase",
-          color: "#000",
         }}
       >
         <div>{gallery.title}</div>
-        {gallery.subtitle && (
-          <div style={{ opacity: 0.6 }}>{gallery.subtitle}</div>
-        )}
+        {gallery.subtitle && <div>{gallery.subtitle}</div>}
         <div>
           {iIndex + 1}/{images.length}
         </div>
