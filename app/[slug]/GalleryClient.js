@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react";
 import { urlFor } from "@/lib/sanity";
 import React from "react";
+import { useRouter } from "next/navigation";
 
 export default function GalleryClient({ galleries, currentIndex }) {
+  const router = useRouter();
+
   const [gIndex, setGIndex] = useState(currentIndex);
   const [iIndex, setIIndex] = useState(0);
   const [showIndex, setShowIndex] = useState(false);
@@ -23,7 +26,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
       setIIndex(iIndex + 1);
     } else {
       const nextGallery = (gIndex + 1) % galleries.length;
-      window.location.href = "/" + galleries[nextGallery].slug;
+      router.push(`/${galleries[nextGallery].slug}`);
     }
   }
 
@@ -33,10 +36,11 @@ export default function GalleryClient({ galleries, currentIndex }) {
     } else {
       const prevGallery =
         (gIndex - 1 + galleries.length) % galleries.length;
-      window.location.href = "/" + galleries[prevGallery].slug;
+      router.push(`/${galleries[prevGallery].slug}`);
     }
   }
 
+  // preload järgmine
   useEffect(() => {
     const nextIndex = iIndex + 1;
     if (images[nextIndex]) {
@@ -45,6 +49,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     }
   }, [iIndex, images]);
 
+  // keyboard
   useEffect(() => {
     const handler = (e) => {
       if (showIndex) return;
@@ -98,7 +103,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
         >
           {galleries.map((g, gIdx) => (
             <React.Fragment key={g.slug}>
-              {/* 👉 TITLE + SUBTITLE SAMAL REAL */}
+              {/* TITLE + SUBTITLE */}
               <div
                 style={{
                   gridColumn: "1 / -1",
@@ -122,15 +127,13 @@ export default function GalleryClient({ galleries, currentIndex }) {
                 )}
               </div>
 
-              {/* 👉 IMAGES */}
+              {/* IMAGES */}
               {g.images.map((img, iIdx) => (
                 <img
                   key={`${g.slug}-${iIdx}`}
                   src={urlFor(img).width(1200).url()}
                   onClick={() => {
-                    setGIndex(gIdx);
-                    setIIndex(iIdx);
-                    setShowIndex(false);
+                    router.push(`/${g.slug}`);
                   }}
                   style={{
                     width: "100%",
