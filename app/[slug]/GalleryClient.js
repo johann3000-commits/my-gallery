@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { urlFor } from "@/lib/sanity";
 import React from "react";
 import { useRouter } from "next/navigation";
@@ -28,12 +28,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
   const [iIndex, setIIndex] = useState(0);
   const [showIndex, setShowIndex] = useState(false);
 
-  const [prevImage, setPrevImage] = useState(null);
-  const [loaded, setLoaded] = useState(true);
-
-  // 🔥 IMAGE CACHE
-  const imageCache = useRef(new Set());
-
   const gallery = galleries[gIndex];
 
   if (!gallery || !gallery.images?.length) {
@@ -43,34 +37,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
   const images = gallery.images;
   const image = images[iIndex];
 
-  // 🔧 PRELOAD FUNCTION
-  function preloadImage(img) {
-    const url = urlFor(img).width(2000).url();
-
-    if (imageCache.current.has(url)) return;
-
-    const imgEl = new Image();
-    imgEl.src = url;
-
-    imageCache.current.add(url);
-  }
-
-  // 🔥 SMART PRELOAD
-  useEffect(() => {
-    const range = 3;
-
-    for (let i = -range; i <= range; i++) {
-      const index = iIndex + i;
-      if (images[index]) {
-        preloadImage(images[index]);
-      }
-    }
-  }, [iIndex, images]);
-
   function next() {
-    setPrevImage(image);
-    setLoaded(false);
-
     if (iIndex < images.length - 1) {
       setIIndex(iIndex + 1);
     } else {
@@ -80,9 +47,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
   }
 
   function prev() {
-    setPrevImage(image);
-    setLoaded(false);
-
     if (iIndex > 0) {
       setIIndex(iIndex - 1);
     } else {
@@ -109,6 +73,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
   // swipe
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
+
   const minSwipeDistance = 50;
 
   const onTouchStart = (e) => {
@@ -122,15 +87,25 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
+
     const distance = touchStart - touchEnd;
+
     if (distance > minSwipeDistance) next();
     if (distance < -minSwipeDistance) prev();
   };
 
-  // 📚 INDEX
+  // 📚 INDEX VIEW
   if (showIndex) {
     return (
-      <div style={{ padding: "5%", background: "#fff" }}>
+      <div
+        style={{
+          width: "100vw",
+          height: "100vh",
+          background: "#fff",
+          overflowY: "auto",
+          padding: "5%",
+        }}
+      >
         <div
           onClick={() => setShowIndex(false)}
           style={{
@@ -170,10 +145,13 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
               {g.images.map((img, iIdx) => (
                 <img
-                  key={iIdx}
+                  key={`${g.slug}-${iIdx}`}
                   src={urlFor(img).width(1200).url()}
                   onClick={() => router.push(`/${g.slug}`)}
-                  style={{ width: "100%", cursor: "pointer" }}
+                  style={{
+                    width: "100%",
+                    cursor: "pointer",
+                  }}
                 />
               ))}
             </React.Fragment>
@@ -183,7 +161,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     );
   }
 
-  // 🎞️ SLIDESHOW
+  // 🎞️ SLIDESHOW (NO TRANSITIONS)
   return (
     <div
       onTouchStart={onTouchStart}
@@ -226,6 +204,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
           zIndex: 5,
         }}
       />
+
       <div
         onClick={next}
         style={{
@@ -238,53 +217,25 @@ export default function GalleryClient({ galleries, currentIndex }) {
         }}
       />
 
-      {/* IMAGE */}
-      <div
+      {/* IMAGE (instant swap) */}
+      <img
+        key={image._key}
+        src={urlFor(image).width(2000).url()}
         style={{
-          position: "relative",
-          width: "90%",
-          height: "90%",
-          background: "#fff",
+          maxWidth: "90%",
+          maxHeight: "90%",
+          objectFit: "contain",
         }}
-      >
-        {/* PREVIOUS */}
-        {prevImage && (
-          <img
-            src={urlFor(prevImage).width(2000).url()}
-            style={{
-              position: "absolute",
-              width: "100%",
-              height: "100%",
-              objectFit: "contain",
-              pointerEvents: "none",
-            }}
-          />
-        )}
-
-        {/* CURRENT */}
-        <img
-          key={image._key}
-          src={urlFor(image).width(2000).url()}
-          onLoad={() => {
-            requestAnimationFrame(() => setLoaded(true));
-            setTimeout(() => setPrevImage(null), 750);
-          }}
-          style={{
-            position: "absolute",
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-            opacity: loaded ? 1 : 0,
-            transform: loaded ? "scale(1)" : "scale(1.01)",
-            transition:
-              "opacity 0.75s cubic-bezier(0.22,1,0.36,1), transform 0.75s cubic-bezier(0.22,1,0.36,1)",
-            pointerEvents: "none",
-          }}
-        />
-      </div>
+      />
 
       {/* TEXT */}
-      <div style={{ position: "absolute", bottom: 20, left: 20 }}>
+      <div
+        style={{
+          position: "absolute",
+          bottom: 20,
+          left: 20,
+        }}
+      >
         <div style={textPrimary}>{gallery.title}</div>
 
         {gallery.subtitle && (
