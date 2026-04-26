@@ -12,26 +12,24 @@ export default function GalleryClient({ galleries, currentIndex }) {
     return <div style={{ padding: 40 }}>No galleries</div>;
   }
 
-  // 🎨 TYPOGRAPHY SYSTEM
+  // 🎨 TYPE
   const textPrimary = {
     color: "#000",
     fontSize: "10px",
     textTransform: "uppercase",
     fontFamily: "Arial, Helvetica, sans-serif",
-    letterSpacing: "0.15px",
+    letterSpacing: "0.5px",
   };
 
-  const textSecondary = {
-    color: "rgba(0,0,0,0.3)",
-  };
-
-  const textTertiary = {
-    color: "rgba(0,0,0,0.6)",
-  };
+  const textSecondary = { color: "rgba(0,0,0,0.3)" };
+  const textTertiary = { color: "rgba(0,0,0,0.6)" };
 
   const [gIndex] = useState(currentIndex || 0);
   const [iIndex, setIIndex] = useState(0);
   const [showIndex, setShowIndex] = useState(false);
+
+  // 🔥 crossfade state
+  const [prevImage, setPrevImage] = useState(null);
   const [loaded, setLoaded] = useState(true);
 
   const gallery = galleries[gIndex];
@@ -44,6 +42,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
   const image = images[iIndex];
 
   function next() {
+    setPrevImage(image);
     setLoaded(false);
 
     if (iIndex < images.length - 1) {
@@ -55,6 +54,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
   }
 
   function prev() {
+    setPrevImage(image);
     setLoaded(false);
 
     if (iIndex > 0) {
@@ -65,11 +65,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
       router.push(`/${galleries[prevGallery].slug}`);
     }
   }
-
-  // fade control
-  useEffect(() => {
-    if (iIndex !== 0) setLoaded(false);
-  }, [iIndex]);
 
   // preload
   useEffect(() => {
@@ -104,7 +99,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
   // swipe
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
-
   const minSwipeDistance = 50;
 
   const onTouchStart = (e) => {
@@ -137,7 +131,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
           padding: "5%",
         }}
       >
-        {/* CLOSE */}
         <div
           onClick={() => setShowIndex(false)}
           style={{
@@ -160,7 +153,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
         >
           {galleries.map((g) => (
             <React.Fragment key={g.slug}>
-              {/* TITLE + SUBTITLE */}
               <div
                 style={{
                   ...textPrimary,
@@ -171,7 +163,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
                 }}
               >
                 <div>{g.title}</div>
-
                 {g.subtitle && (
                   <div style={textSecondary}>{g.subtitle}</div>
                 )}
@@ -182,10 +173,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
                   key={`${g.slug}-${iIdx}`}
                   src={urlFor(img).width(1200).url()}
                   onClick={() => router.push(`/${g.slug}`)}
-                  style={{
-                    width: "100%",
-                    cursor: "pointer",
-                  }}
+                  style={{ width: "100%", cursor: "pointer" }}
                 />
               ))}
             </React.Fragment>
@@ -212,7 +200,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
         touchAction: "pan-y",
       }}
     >
-      {/* INDEX BUTTON */}
+      {/* INDEX */}
       <div
         onClick={() => setShowIndex(true)}
         style={{
@@ -250,20 +238,42 @@ export default function GalleryClient({ galleries, currentIndex }) {
         }}
       />
 
-      {/* IMAGE */}
-      <img
-        key={image._key}
-        src={urlFor(image).width(2000).url()}
-        onLoad={() => setLoaded(true)}
+      {/* 🔥 CROSSFADE IMAGE */}
+      <div
         style={{
-  maxWidth: "90%",
-  maxHeight: "90%",
-  objectFit: "contain",
-  opacity: loaded ? 1 : 0,
-  transform: loaded ? "scale(1)" : "scale(1.01)",
-  transition: "opacity 0.6s cubic-bezier(0.4,0,0.2,1), transform 0.6s cubic-bezier(0.4,0,0.2,1)",
-}}
-      />
+          position: "relative",
+          width: "90%",
+          height: "90%",
+        }}
+      >
+        {/* previous */}
+        {prevImage && (
+          <img
+            src={urlFor(prevImage).width(2000).url()}
+            style={{
+              position: "absolute",
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+            }}
+          />
+        )}
+
+        {/* current */}
+        <img
+          key={image._key}
+          src={urlFor(image).width(2000).url()}
+          onLoad={() => setLoaded(true)}
+          style={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            opacity: loaded ? 1 : 0,
+            transition: "opacity 0.6s cubic-bezier(0.4,0,0.2,1)",
+          }}
+        />
+      </div>
 
       {/* TEXT */}
       <div
