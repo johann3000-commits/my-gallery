@@ -27,7 +27,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const [gIndex] = useState(currentIndex || 0);
   const [showIndex, setShowIndex] = useState(false);
-  const [visible, setVisible] = useState(true);
 
   const gallery = galleries[gIndex];
 
@@ -37,24 +36,17 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const images = gallery.images;
 
-  // 🔥 URL param (robust)
+  // 🔥 URL → state
   const imageParam = searchParams.get("image");
 
   const [iIndex, setIIndex] = useState(0);
 
-  // 🔥 SYNC URL → STATE (FIX)
   useEffect(() => {
     const newIndex = Math.min(
       Math.max(parseInt(imageParam || "0", 10), 0),
       images.length - 1
     );
-
-    setVisible(false);
     setIIndex(newIndex);
-
-    requestAnimationFrame(() => {
-      setVisible(true);
-    });
   }, [imageParam, images.length]);
 
   function updateUrl(index) {
@@ -63,8 +55,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   function next() {
     if (iIndex < images.length - 1) {
-      const newIndex = iIndex + 1;
-      updateUrl(newIndex);
+      updateUrl(iIndex + 1);
     } else {
       const nextGallery = (gIndex + 1) % galleries.length;
       router.push(`/${galleries[nextGallery].slug}`);
@@ -73,8 +64,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   function prev() {
     if (iIndex > 0) {
-      const newIndex = iIndex - 1;
-      updateUrl(newIndex);
+      updateUrl(iIndex - 1);
     } else {
       const prevGallery =
         (gIndex - 1 + galleries.length) % galleries.length;
@@ -120,6 +110,62 @@ export default function GalleryClient({ galleries, currentIndex }) {
     if (distance < -minSwipeDistance) prev();
   };
 
+  const image = images[iIndex];
+
+  // 🔥 DISPLAYED IMAGE (no flash)
+  const [displayedSrc, setDisplayedSrc] = useState(
+    urlFor(image).width(1600).dpr(2).quality(90).url()
+  );
+
+  useEffect(() => {
+    const newSrc = urlFor(image)
+      .width(1600)
+      .dpr(2)
+      .quality(90)
+      .url();
+
+    const img = new Image();
+    img.src = newSrc;
+
+    img.onload = () => {
+      setDisplayedSrc(newSrc);
+    };
+  }, [image]);
+
+  // 🔥 INSTANT PRELOAD (core feature)
+  useEffect(() => {
+    const range = 3;
+
+    for (let i = -range; i <= range; i++) {
+      const index = iIndex + i;
+
+      if (images[index]) {
+        const src = urlFor(images[index])
+          .width(1600)
+          .dpr(2)
+          .quality(90)
+          .url();
+
+        const img = new Image();
+        img.src = src;
+      }
+    }
+  }, [iIndex, images]);
+
+  // preload first images on mount
+  useEffect(() => {
+    images.slice(0, 5).forEach((img) => {
+      const src = urlFor(img)
+        .width(1600)
+        .dpr(2)
+        .quality(90)
+        .url();
+
+      const i = new Image();
+      i.src = src;
+    });
+  }, []);
+
   // 📚 INDEX
   if (showIndex) {
     return (
@@ -164,7 +210,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
               {g.images.map((img, iIdx) => (
                 <img
                   key={`${g.slug}-${iIdx}`}
-                  src={urlFor(img).width(1200).url()}
+                  src={urlFor(img).width(800).url()}
                   onClick={() =>
                     router.push(`/${g.slug}?image=${iIdx}`)
                   }
@@ -177,8 +223,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
       </div>
     );
   }
-
-  const image = images[iIndex];
 
   // 🎞️ SLIDESHOW
   return (
@@ -220,7 +264,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
           top: "5%",
           width: "50%",
           height: "90%",
-          zIndex: 5,
         }}
       />
       <div
@@ -231,24 +274,18 @@ export default function GalleryClient({ galleries, currentIndex }) {
           top: "5%",
           width: "50%",
           height: "90%",
-          zIndex: 5,
         }}
       />
 
       {/* IMAGE */}
-        <img
-          key={image._key}
-          src={urlFor(image).width(2000).url()}
-          onLoad={() => setVisible(true)}
-          style={{
-            maxWidth: "90%",
-            maxHeight: "90%",
-            objectFit: "contain",
-            opacity: visible ? 1 : 0,
-            transform: visible ? "scale(1)" : "scale(0.995)",
-            transition: "opacity 0.25s ease-out, transform 0.25s ease-out",
-          }}
-        />
+      <img
+        src={displayedSrc}
+        style={{
+          maxWidth: "90%",
+          maxHeight: "90%",
+          objectFit: "contain",
+        }}
+      />
 
       {/* TEXT */}
       <div style={{ position: "absolute", bottom: 20, left: 20 }}>
