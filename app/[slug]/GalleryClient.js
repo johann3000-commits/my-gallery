@@ -36,9 +36,8 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const images = gallery.images;
 
-  // 🔥 URL → state
+  // URL → state
   const imageParam = searchParams.get("image");
-
   const [iIndex, setIIndex] = useState(0);
 
   useEffect(() => {
@@ -112,7 +111,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const image = images[iIndex];
 
-  // 🔥 DISPLAYED IMAGE (no flash)
+  // no-flash image system
   const [displayedSrc, setDisplayedSrc] = useState(
     urlFor(image).width(1600).dpr(2).quality(90).url()
   );
@@ -132,7 +131,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     };
   }, [image]);
 
-  // 🔥 INSTANT PRELOAD (core feature)
+  // preload
   useEffect(() => {
     const range = 3;
 
@@ -152,21 +151,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     }
   }, [iIndex, images]);
 
-  // preload first images on mount
-  useEffect(() => {
-    images.slice(0, 5).forEach((img) => {
-      const src = urlFor(img)
-        .width(1600)
-        .dpr(2)
-        .quality(90)
-        .url();
-
-      const i = new Image();
-      i.src = src;
-    });
-  }, []);
-
-  // 📚 INDEX
+  // INDEX
   if (showIndex) {
     return (
       <div style={{ padding: "5%", background: "#fff" }}>
@@ -287,8 +272,14 @@ export default function GalleryClient({ galleries, currentIndex }) {
         }}
       />
 
-      {/* TEXT */}
-      <div style={{ position: "absolute", bottom: 20, left: 20 }}>
+      {/* TEXT (responsive position) */}
+      <div
+        style={{
+          position: "absolute",
+          left: 20,
+          top: "env(safe-area-inset-top, 20px)",
+        }}
+      >
         <div style={textPrimary}>{gallery.title}</div>
 
         {gallery.subtitle && (
