@@ -36,7 +36,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const images = gallery.images;
 
-  // URL → state
+  // 🔥 URL → state
   const imageParam = searchParams.get("image");
   const [iIndex, setIIndex] = useState(0);
 
@@ -71,7 +71,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     }
   }
 
-  // keyboard
+  // ⌨️ keyboard nav
   useEffect(() => {
     const handler = (e) => {
       if (showIndex) return;
@@ -85,11 +85,9 @@ export default function GalleryClient({ galleries, currentIndex }) {
     return () => window.removeEventListener("keydown", handler);
   });
 
-  // swipe
+  // 👉 swipe
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
-
-  const minSwipeDistance = 50;
 
   const onTouchStart = (e) => {
     setTouchEnd(null);
@@ -105,13 +103,13 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
     const distance = touchStart - touchEnd;
 
-    if (distance > minSwipeDistance) next();
-    if (distance < -minSwipeDistance) prev();
+    if (distance > 50) next();
+    if (distance < -50) prev();
   };
 
   const image = images[iIndex];
 
-  // no-flash image system
+  // 🔥 NO-FLASH IMAGE SYSTEM
   const [displayedSrc, setDisplayedSrc] = useState(
     urlFor(image).width(1600).dpr(2).quality(90).url()
   );
@@ -131,7 +129,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     };
   }, [image]);
 
-  // preload
+  // 🔥 INSTANT PRELOAD
   useEffect(() => {
     const range = 3;
 
@@ -151,7 +149,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     }
   }, [iIndex, images]);
 
-  // INDEX
+  // 📚 INDEX VIEW
   if (showIndex) {
     return (
       <div style={{ padding: "5%", background: "#fff" }}>
@@ -272,14 +270,8 @@ export default function GalleryClient({ galleries, currentIndex }) {
         }}
       />
 
-      {/* TEXT (responsive position) */}
-      <div
-        style={{
-          position: "absolute",
-          left: 20,
-          top: "env(safe-area-inset-top, 20px)",
-        }}
-      >
+      {/* TEXT (uses CSS!) */}
+      <div className="gallery-text">
         <div style={textPrimary}>{gallery.title}</div>
 
         {gallery.subtitle && (

@@ -47,3 +47,16 @@ a {
     color-scheme: dark;
   }
 }
+
+.gallery-text {
+  position: absolute;
+  left: 20px;
+  top: 20px; /* mobile */
+}
+
+@media (min-width: 768px) {
+  .gallery-text {
+    top: auto;
+    bottom: 20px; /* desktop */
+  }
+}
