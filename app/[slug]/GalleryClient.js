@@ -236,19 +236,19 @@ export default function GalleryClient({ galleries, currentIndex }) {
       />
 
       {/* IMAGE */}
-      <img
-        key={image._key}
-        src={urlFor(image).width(2000).url()}
-        onLoad={() => setVisible(true)}
-        style={{
-          maxWidth: "90%",
-          maxHeight: "90%",
-          objectFit: "contain",
-          opacity: visible ? 1 : 0,
-          transform: visible ? "scale(1)" : "scale(0.995)",
-          transition: "opacity 0.25s ease-out, transform 0.25s ease-out",
-        }}
-      />
+        <img
+          key={image._key}
+          src={urlFor(image).width(2000).url()}
+          onLoad={() => setVisible(true)}
+          style={{
+            maxWidth: "90%",
+            maxHeight: "90%",
+            objectFit: "contain",
+            opacity: visible ? 1 : 0,
+            transform: visible ? "scale(1)" : "scale(0.995)",
+            transition: "opacity 0.25s ease-out, transform 0.25s ease-out",
+          }}
+        />
 
       {/* TEXT */}
       <div style={{ position: "absolute", bottom: 20, left: 20 }}>
