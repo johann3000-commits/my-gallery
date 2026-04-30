@@ -24,7 +24,9 @@ export default function GalleryClient({ galleries, currentIndex }) {
   const textSecondary = { color: "rgba(0,0,0,0.3)" };
   const textTertiary = { color: "rgba(0,0,0,0.6)" };
 
+  // 🔥 oluline: EI OLE state
   const gIndex = currentIndex || 0;
+
   const [showIndex, setShowIndex] = useState(false);
 
   const gallery = galleries[gIndex];
@@ -35,9 +37,12 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const images = gallery.images;
 
-  const imageParam = Number(searchParams.get("image") || 0);
+  // 🔥 1-based → 0-based
+  const imageParam = Number(searchParams.get("image") || 1) - 1;
+
   const [iIndex, setIIndex] = useState(0);
 
+  // 🔥 URL sync
   useEffect(() => {
     const newIndex = Math.min(
       Math.max(imageParam, 0),
@@ -47,7 +52,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
   }, [imageParam, images.length]);
 
   function updateUrl(index) {
-    router.replace(`/${gallery.slug}?image=${index}`);
+    router.replace(`/${gallery.slug}?image=${index + 1}`);
   }
 
   function next() {
@@ -69,6 +74,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     }
   }
 
+  // keyboard
   useEffect(() => {
     const handler = (e) => {
       if (showIndex) return;
@@ -82,6 +88,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     return () => window.removeEventListener("keydown", handler);
   });
 
+  // swipe
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
 
@@ -105,32 +112,30 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const image = images[iIndex];
 
-  // 🔥 NO-FLASH SYSTEM
+  // 🔥 NO FLASH
   const [displayedSrc, setDisplayedSrc] = useState(
     urlFor(image).width(1600).dpr(2).quality(90).url()
   );
 
- useEffect(() => {
-  const newSrc = urlFor(image)
-    .width(1600)
-    .dpr(2)
-    .quality(90)
-    .url();
+  useEffect(() => {
+    const newSrc = urlFor(image)
+      .width(1600)
+      .dpr(2)
+      .quality(90)
+      .url();
 
-  const img = new Image();
-  img.src = newSrc;
+    const img = new Image();
+    img.src = newSrc;
 
-  // 🔥 KUI JUBA CACHE’IS → kohe vaheta
-  if (img.complete) {
-    setDisplayedSrc(newSrc);
-    return;
-  }
+    if (img.complete) {
+      setDisplayedSrc(newSrc);
+      return;
+    }
 
-  // 🔥 muidu oota loadi
-  img.onload = () => {
-    setDisplayedSrc(newSrc);
-  };
-}, [image]);
+    img.onload = () => {
+      setDisplayedSrc(newSrc);
+    };
+  }, [image]);
 
   // 🔥 PRELOAD
   useEffect(() => {
@@ -217,17 +222,19 @@ export default function GalleryClient({ galleries, currentIndex }) {
       {/* TEXT */}
       <div className="gallery-text">
         <div style={textPrimary}>{gallery.title}</div>
+
         {gallery.subtitle && (
           <div style={{ ...textPrimary, ...textSecondary }}>
             {gallery.subtitle}
           </div>
         )}
+
         <div style={{ ...textPrimary, ...textTertiary }}>
           {iIndex + 1}/{images.length}
         </div>
       </div>
 
-      {/* 🔥 INDEX OVERLAY (KEY CHANGE) */}
+      {/* INDEX OVERLAY */}
       {showIndex && (
         <div
           style={{
@@ -281,7 +288,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
                     key={`${g.slug}-${iIdx}`}
                     src={urlFor(img).width(800).url()}
                     onClick={() => {
-                      router.push(`/${g.slug}?image=${iIdx}`);
+                      router.push(`/${g.slug}?image=${iIdx + 1}`);
                       setShowIndex(false);
                     }}
                     style={{ width: "100%", cursor: "pointer" }}

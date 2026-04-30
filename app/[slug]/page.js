@@ -66,11 +66,12 @@ export default async function Page({ params }) {
     (g) => String(g.slug) === String(params.slug)
   );
 
-  // 🔥 fallback (väga oluline)
+  // 🔥 fallback
   const safeIndex = currentIndex === -1 ? 0 : currentIndex;
 
   return (
     <GalleryClient
+      key={params.slug} // 🔥 KÕIGE OLULISEM FIX
       galleries={galleries}
       currentIndex={safeIndex}
     />
