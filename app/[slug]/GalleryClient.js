@@ -13,7 +13,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
     return <div style={{ padding: 40 }}>No galleries</div>;
   }
 
-  // 🎯 EI kasuta state — alati propsist
   const gallery = galleries[currentIndex];
 
   if (!gallery || !gallery.images?.length) {
@@ -106,29 +105,14 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const image = images[iIndex];
 
-  // 🔥 NO-FLASH (cache-aware)
-  const [displayedSrc, setDisplayedSrc] = useState(
-    urlFor(image).width(1600).dpr(2).quality(90).url()
-  );
+  // 🔥 DIRECT SRC (NO STATE → NO JUMP)
+  const src = urlFor(image)
+    .width(1600)
+    .dpr(2)
+    .quality(90)
+    .url();
 
-  useEffect(() => {
-    const newSrc = urlFor(image)
-      .width(1600)
-      .dpr(2)
-      .quality(90)
-      .url();
-
-    const img = new Image();
-    img.src = newSrc;
-
-    if (img.complete) {
-      setDisplayedSrc(newSrc);
-    } else {
-      img.onload = () => setDisplayedSrc(newSrc);
-    }
-  }, [image]);
-
-  // 🔥 PRELOAD
+  // 🔥 PRELOAD (jätame alles)
   useEffect(() => {
     const range = 3;
 
@@ -136,14 +120,14 @@ export default function GalleryClient({ galleries, currentIndex }) {
       const index = iIndex + i;
 
       if (images[index]) {
-        const src = urlFor(images[index])
+        const preloadSrc = urlFor(images[index])
           .width(1600)
           .dpr(2)
           .quality(90)
           .url();
 
         const img = new Image();
-        img.src = src;
+        img.src = preloadSrc;
       }
     }
   }, [iIndex, images]);
@@ -202,7 +186,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
       {/* IMAGE */}
       <img
-        src={displayedSrc}
+        src={src}
         style={{
           maxWidth: "90%",
           maxHeight: "90%",
