@@ -9,9 +9,19 @@ export default function GalleryClient({ galleries, currentIndex }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  if (!galleries || galleries.length === 0) {
+    return <div style={{ padding: 40 }}>No galleries</div>;
+  }
+
   const gallery = galleries[currentIndex];
+
+  if (!gallery || !gallery.images?.length) {
+    return <div style={{ padding: 40 }}>No images</div>;
+  }
+
   const images = gallery.images;
 
+  // 🔥 URL → index (1-based)
   const imageParam = Number(searchParams.get("image") || 1) - 1;
   const iIndex = Math.min(Math.max(imageParam, 0), images.length - 1);
 
@@ -21,7 +31,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     return urlFor(img).width(1600).dpr(2).quality(90).url();
   }
 
-  // 🔥 CORE: keep old until new ready
+  // 🔥 NO-FLASH / NO-JUMP
   const [displaySrc, setDisplaySrc] = useState("");
 
   const image = images[iIndex];
@@ -32,13 +42,13 @@ export default function GalleryClient({ galleries, currentIndex }) {
     const img = new Image();
     img.src = newSrc;
 
-    img.decode?.().then(() => {
-      setDisplaySrc(newSrc);
-    }).catch(() => {
-      // fallback
-      setDisplaySrc(newSrc);
-    });
-
+    if (img.decode) {
+      img.decode()
+        .then(() => setDisplaySrc(newSrc))
+        .catch(() => setDisplaySrc(newSrc));
+    } else {
+      img.onload = () => setDisplaySrc(newSrc);
+    }
   }, [image]);
 
   function updateUrl(index) {
@@ -66,7 +76,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     }
   }
 
-  // keyboard
+  // ⌨️ keyboard
   useEffect(() => {
     const handler = (e) => {
       if (showIndex) return;
@@ -80,8 +90,33 @@ export default function GalleryClient({ galleries, currentIndex }) {
     return () => window.removeEventListener("keydown", handler);
   });
 
+  // 👉 swipe
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+
+    if (distance > 50) next();
+    if (distance < -50) prev();
+  };
+
   return (
     <div
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
       style={{
         width: "100vw",
         height: "100vh",
@@ -92,26 +127,48 @@ export default function GalleryClient({ galleries, currentIndex }) {
         position: "relative",
       }}
     >
-      {/* INDEX */}
+      {/* INDEX BUTTON */}
       <div
         onClick={() => setShowIndex(true)}
         style={{
           position: "absolute",
           top: 20,
           right: 20,
-          fontSize: 10,
+          fontSize: "10px",
+          fontFamily: "Arial, Helvetica, sans-serif",
+          textTransform: "uppercase",
+          letterSpacing: "0.5px",
+          color: "#000",
           cursor: "pointer",
-          zIndex: 10,
+          zIndex: 30,
         }}
       >
         Index
       </div>
 
       {/* CLICK AREAS */}
-      <div onClick={prev} style={{ position: "absolute", left: 0, width: "50%", height: "100%" }} />
-      <div onClick={next} style={{ position: "absolute", right: 0, width: "50%", height: "100%" }} />
+      <div
+        onClick={prev}
+        style={{
+          position: "absolute",
+          left: 0,
+          top: "5%",
+          width: "50%",
+          height: "90%",
+        }}
+      />
+      <div
+        onClick={next}
+        style={{
+          position: "absolute",
+          right: 0,
+          top: "5%",
+          width: "50%",
+          height: "90%",
+        }}
+      />
 
-      {/* 🔥 IMAGE */}
+      {/* IMAGE */}
       {displaySrc && (
         <img
           src={displaySrc}
@@ -135,7 +192,24 @@ export default function GalleryClient({ galleries, currentIndex }) {
             zIndex: 20,
           }}
         >
-          <div onClick={() => setShowIndex(false)}>Close</div>
+          {/* CLOSE */}
+          <div
+            onClick={() => setShowIndex(false)}
+            style={{
+              position: "fixed",
+              top: 20,
+              right: 20,
+              fontSize: "10px",
+              fontFamily: "Arial, Helvetica, sans-serif",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+              color: "#000",
+              cursor: "pointer",
+              zIndex: 40,
+            }}
+          >
+            Close
+          </div>
 
           <div
             style={{
@@ -146,6 +220,18 @@ export default function GalleryClient({ galleries, currentIndex }) {
           >
             {galleries.map((g) => (
               <React.Fragment key={g.slug}>
+                <div
+                  style={{
+                    gridColumn: "1 / -1",
+                    marginTop: "40px",
+                    fontSize: "10px",
+                    textTransform: "uppercase",
+                    fontFamily: "Arial, Helvetica, sans-serif",
+                  }}
+                >
+                  {g.title}
+                </div>
+
                 {g.images.map((img, iIdx) => (
                   <img
                     key={`${g.slug}-${iIdx}`}
