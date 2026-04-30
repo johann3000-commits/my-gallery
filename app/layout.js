@@ -23,3 +23,9 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+
+metadata = {
+  openGraph: {
+    images: ["/og.jpg"]
+  }
+}
