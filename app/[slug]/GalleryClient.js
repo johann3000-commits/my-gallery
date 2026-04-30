@@ -21,7 +21,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const images = gallery.images;
 
-  // 🔥 URL → index (1-based)
   const imageParam = Number(searchParams.get("image") || 1) - 1;
   const iIndex = Math.min(Math.max(imageParam, 0), images.length - 1);
 
@@ -31,9 +30,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     return urlFor(img).width(1600).dpr(2).quality(90).url();
   }
 
-  // 🔥 NO-FLASH / NO-JUMP
   const [displaySrc, setDisplaySrc] = useState("");
-
   const image = images[iIndex];
 
   useEffect(() => {
@@ -76,7 +73,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
     }
   }
 
-  // ⌨️ keyboard
   useEffect(() => {
     const handler = (e) => {
       if (showIndex) return;
@@ -90,7 +86,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
     return () => window.removeEventListener("keydown", handler);
   });
 
-  // 👉 swipe
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
 
@@ -127,26 +122,26 @@ export default function GalleryClient({ galleries, currentIndex }) {
         position: "relative",
       }}
     >
-  {/* INDEX BUTTON */}
-{!showIndex && (
-  <div
-    onClick={() => setShowIndex(true)}
-    style={{
-      position: "absolute",
-      top: 20,
-      right: 20,
-      fontSize: "10px",
-      fontFamily: "Arial, Helvetica, sans-serif",
-      textTransform: "uppercase",
-      letterSpacing: "0.5px",
-      color: "#000",
-      cursor: "pointer",
-      zIndex: 30,
-    }}
-  >
-    Index
-  </div>
-)}
+      {/* INDEX BUTTON */}
+      {!showIndex && (
+        <div
+          onClick={() => setShowIndex(true)}
+          style={{
+            position: "absolute",
+            top: 20,
+            right: 20,
+            fontSize: "10px",
+            fontFamily: "Arial, Helvetica, sans-serif",
+            textTransform: "uppercase",
+            letterSpacing: "0.5px",
+            color: "#000",
+            cursor: "pointer",
+            zIndex: 30,
+          }}
+        >
+          Index
+        </div>
+      )}
 
       {/* CLICK AREAS */}
       <div
@@ -194,23 +189,48 @@ export default function GalleryClient({ galleries, currentIndex }) {
             zIndex: 20,
           }}
         >
-          {/* CLOSE */}
+          {/* 🔥 TOP BAR (EMAIL + CLOSE) */}
           <div
-            onClick={() => setShowIndex(false)}
             style={{
               position: "fixed",
               top: 20,
               right: 20,
-              fontSize: "10px",
-              fontFamily: "Arial, Helvetica, sans-serif",
-              textTransform: "uppercase",
-              letterSpacing: "0.5px",
-              color: "#000",
-              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "16px",
               zIndex: 40,
             }}
           >
-            Close
+            {/* EMAIL */}
+            <a
+              href="mailto:johann3000@gmail.com"
+              style={{
+                fontSize: "10px",
+                fontFamily: "Arial, Helvetica, sans-serif",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+                color: "#000",
+                textDecoration: "none",
+                cursor: "pointer",
+              }}
+            >
+              johann3000@gmail.com
+            </a>
+
+            {/* CLOSE */}
+            <div
+              onClick={() => setShowIndex(false)}
+              style={{
+                fontSize: "10px",
+                fontFamily: "Arial, Helvetica, sans-serif",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+                color: "#000",
+                cursor: "pointer",
+              }}
+            >
+              Close
+            </div>
           </div>
 
           <div
