@@ -13,12 +13,14 @@ const geistMono = Geist_Mono({
 
 // ✅ ÜKS metadata (õige koht)
 export const metadata = {
-  title: "Johann",
-  description: "Photography portfolio",
+  metadataBase: new URL("https://johann3000.space"),
+
+  title: "Johann 3000",
+  description: "Making pictures",
 
   openGraph: {
-    title: "Johann",
-    description: "Photography portfolio",
+    title: "Johann 3000",
+    description: "Making pictures",
     images: ["/og.jpg"],
   },
 

@@ -1,41 +1,55 @@
 import { client, urlFor } from "@/lib/sanity";
 import GalleryClient from "./GalleryClient";
 
-// 🔥 OG PER GALLERY
+// 🔥 OG PER PAGE
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
 
-  try {
-    const gallery = await client.fetch(
-      `*[_type == "gallery" && slug.current == $slug][0]{
-        title,
-        subtitle,
-        images
-      }`,
-      { slug }
-    );
+  const gallery = await client.fetch(
+    `*[_type == "gallery" && slug.current == $slug][0]{
+      title,
+      subtitle,
+      images
+    }`,
+    { slug }
+  );
 
-    if (!gallery) return {};
-
-    const ogImage = gallery.images?.[0];
-
-    const imageUrl = ogImage
-      ? urlFor(ogImage).width(1200).height(630).fit("crop").url()
-      : "/og.jpg";
-
-    return {
-      title: gallery.title || "Gallery",
-      description: gallery.subtitle || "Photography portfolio",
-      openGraph: {
-        title: gallery.title,
-        description: gallery.subtitle,
-        images: [{ url: imageUrl }],
-      },
-    };
-  } catch {
+  if (!gallery) {
     return {};
   }
+
+  const ogImage = gallery.images?.[0];
+
+  const imageUrl = ogImage
+    ? urlFor(ogImage)
+        .width(1200)
+        .height(630)
+        .fit("crop")
+        .url()
+    : "https://johann3000.space/og.jpg";
+
+  return {
+    title: gallery.title,
+    description: gallery.subtitle || "Photography portfolio",
+
+    openGraph: {
+      title: gallery.title,
+      description: gallery.subtitle,
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+        },
+      ],
+    },
+
+    twitter: {
+      card: "summary_large_image",
+      images: [imageUrl],
+    },
+  };
 }
 
 // 🔥 PAGE
@@ -52,7 +66,6 @@ export default async function Page({ params }) {
     }
   `);
 
-  // 🔥 nüüd töötab päriselt
   const currentIndex = galleries.findIndex(
     (g) => String(g.slug) === String(slug)
   );
@@ -61,7 +74,7 @@ export default async function Page({ params }) {
 
   return (
     <GalleryClient
-      key={slug} // 🔥 väga oluline
+      key={slug}
       galleries={galleries}
       currentIndex={safeIndex}
     />
