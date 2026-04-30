@@ -243,16 +243,17 @@ export default function GalleryClient({ galleries, currentIndex }) {
             {galleries.map((g) => (
               <React.Fragment key={g.slug}>
                 <div
-                  style={{
-                    gridColumn: "1 / -1",
-                    marginTop: "40px",
-                    fontSize: "10px",
-                    textTransform: "uppercase",
-                    fontFamily: "Arial, Helvetica, sans-serif",
-                  }}
-                >
-                  {g.title}
-                </div>
+  style={{
+    gridColumn: "1 / -1",
+    marginTop: "40px",
+    fontSize: "10px",
+    textTransform: "uppercase",
+    fontFamily: "Arial, Helvetica, sans-serif",
+    color: "#000", // 🔥 FIX
+  }}
+>
+  {g.title}
+</div>
 
                 {g.images.map((img, iIdx) => (
                   <img
