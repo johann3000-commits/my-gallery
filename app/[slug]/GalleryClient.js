@@ -127,24 +127,26 @@ export default function GalleryClient({ galleries, currentIndex }) {
         position: "relative",
       }}
     >
-      {/* INDEX BUTTON */}
-      <div
-        onClick={() => setShowIndex(true)}
-        style={{
-          position: "absolute",
-          top: 20,
-          right: 20,
-          fontSize: "10px",
-          fontFamily: "Arial, Helvetica, sans-serif",
-          textTransform: "uppercase",
-          letterSpacing: "0.5px",
-          color: "#000",
-          cursor: "pointer",
-          zIndex: 30,
-        }}
-      >
-        Index
-      </div>
+  {/* INDEX BUTTON */}
+{!showIndex && (
+  <div
+    onClick={() => setShowIndex(true)}
+    style={{
+      position: "absolute",
+      top: 20,
+      right: 20,
+      fontSize: "10px",
+      fontFamily: "Arial, Helvetica, sans-serif",
+      textTransform: "uppercase",
+      letterSpacing: "0.5px",
+      color: "#000",
+      cursor: "pointer",
+      zIndex: 30,
+    }}
+  >
+    Index
+  </div>
+)}
 
       {/* CLICK AREAS */}
       <div
