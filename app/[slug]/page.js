@@ -1,21 +1,9 @@
+import { client, urlFor } from "@/lib/sanity";
 import GalleryClient from "./GalleryClient";
-import { client } from "@/lib/sanity";
-import { notFound } from "next/navigation";
-import imageUrlBuilder from "@sanity/image-url";
 
-// 👉 helper OG image jaoks
-const builder = imageUrlBuilder({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
-});
-
-function urlFor(source) {
-  return builder.image(source);
-}
-
-// 👉 SEO + OG IMAGE
+// 🔥 OG METADATA PER GALLERY
 export async function generateMetadata({ params }) {
-  const { slug } = await params;
+  const { slug } = params;
 
   const gallery = await client.fetch(
     `*[_type == "gallery" && slug.current == $slug][0]{
@@ -26,35 +14,47 @@ export async function generateMetadata({ params }) {
     { slug }
   );
 
-  if (!gallery) return {};
+  if (!gallery) {
+    return {};
+  }
 
-  const image = gallery.images?.[0];
+  // 👉 võta esimene pilt OG jaoks
+  const ogImage = gallery.images?.[0];
+
+  const imageUrl = ogImage
+    ? urlFor(ogImage).width(1200).height(630).fit("crop").url()
+    : "/og.jpg";
 
   return {
     title: gallery.title,
-    description: gallery.subtitle,
+    description: gallery.subtitle || "Photography portfolio",
+
     openGraph: {
       title: gallery.title,
-      description: gallery.subtitle,
-      images: image
-        ? [
-            {
-              url: urlFor(image).width(1200).height(630).url(),
-              width: 1200,
-              height: 630,
-            },
-          ]
-        : [],
+      description: gallery.subtitle || "Photography portfolio",
+      url: `https://johann3000.space/${slug}`,
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+        },
+      ],
+    },
+
+    twitter: {
+      card: "summary_large_image",
+      title: gallery.title,
+      description: gallery.subtitle || "Photography portfolio",
+      images: [imageUrl],
     },
   };
 }
 
-// 👉 PAGE
+// 🔥 PAGE
 export default async function Page({ params }) {
-  const { slug } = await params;
-
   const galleries = await client.fetch(`
-    *[_type == "gallery"] | order(order asc) {
+    *[_type == "gallery"] | order(_createdAt asc){
       title,
       subtitle,
       "slug": slug.current,
@@ -63,12 +63,8 @@ export default async function Page({ params }) {
   `);
 
   const currentIndex = galleries.findIndex(
-    (g) => g.slug === slug
+    (g) => g.slug === params.slug
   );
-
-  if (currentIndex === -1) {
-    notFound();
-  }
 
   return (
     <GalleryClient
