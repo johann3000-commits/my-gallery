@@ -1,7 +1,7 @@
 import { client, urlFor } from "@/lib/sanity";
 import GalleryClient from "./GalleryClient";
 
-// 🔥 OG METADATA PER GALLERY
+// 🔥 OG PER GALLERY (safe)
 export async function generateMetadata({ params }) {
   try {
     const gallery = await client.fetch(
@@ -13,9 +13,7 @@ export async function generateMetadata({ params }) {
       { slug: params.slug }
     );
 
-    if (!gallery) {
-      return {};
-    }
+    if (!gallery) return {};
 
     const ogImage = gallery.images?.[0];
 
@@ -45,7 +43,6 @@ export async function generateMetadata({ params }) {
       },
     };
   } catch (e) {
-    // 👉 fallback kui midagi läheb katki
     return {
       title: "Gallery",
       description: "Photography portfolio",
@@ -64,14 +61,18 @@ export default async function Page({ params }) {
     }
   `);
 
+  // 🔥 robust slug match
   const currentIndex = galleries.findIndex(
-    (g) => g.slug === params.slug
+    (g) => String(g.slug) === String(params.slug)
   );
+
+  // 🔥 fallback (väga oluline)
+  const safeIndex = currentIndex === -1 ? 0 : currentIndex;
 
   return (
     <GalleryClient
       galleries={galleries}
-      currentIndex={currentIndex}
+      currentIndex={safeIndex}
     />
   );
 }
