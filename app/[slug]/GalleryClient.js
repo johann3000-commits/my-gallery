@@ -246,13 +246,22 @@ export default function GalleryClient({ galleries, currentIndex }) {
   style={{
     gridColumn: "1 / -1",
     marginTop: "40px",
+    display: "flex",
+    gap: "12px",
     fontSize: "10px",
     textTransform: "uppercase",
     fontFamily: "Arial, Helvetica, sans-serif",
-    color: "#000", // 🔥 FIX
   }}
 >
-  {g.title}
+  <div style={{ color: "#000" }}>
+    {g.title}
+  </div>
+
+  {g.subtitle && (
+    <div style={{ color: "rgba(0,0,0,0.3)" }}>
+      {g.subtitle}
+    </div>
+  )}
 </div>
 
                 {g.images.map((img, iIdx) => (
