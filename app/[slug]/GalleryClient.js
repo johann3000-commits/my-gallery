@@ -42,19 +42,24 @@ export default function GalleryClient({ galleries, currentIndex }) {
   const image = images[iIndex];
 
   useEffect(() => {
-    const newSrc = getSrc(image);
+  const newSrc = getSrc(image);
 
-    const img = new Image();
-    img.src = newSrc;
+  const img = new Image();
+  img.src = newSrc;
 
-    if (img.decode) {
-      img.decode()
-        .then(() => setDisplaySrc(newSrc))
-        .catch(() => setDisplaySrc(newSrc));
-    } else {
-      img.onload = () => setDisplaySrc(newSrc);
-    }
-  }, [image]);
+  if (img.decode) {
+    img.decode().then(() => {
+      setDisplaySrc(newSrc);
+    });
+
+    // 🔥 fallback (mobiili jaoks)
+    setTimeout(() => {
+      setDisplaySrc(newSrc);
+    }, 50);
+  } else {
+    img.onload = () => setDisplaySrc(newSrc);
+  }
+}, [image]);
 
   function updateUrl(index) {
     router.replace(`/${gallery.slug}?image=${index + 1}`);
