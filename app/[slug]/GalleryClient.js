@@ -114,20 +114,27 @@ export default function GalleryClient({ galleries, currentIndex }) {
     urlFor(image).width(1600).dpr(2).quality(90).url()
   );
 
-  useEffect(() => {
-    const newSrc = urlFor(image)
-      .width(1600)
-      .dpr(2)
-      .quality(90)
-      .url();
+ useEffect(() => {
+  const newSrc = urlFor(image)
+    .width(1600)
+    .dpr(2)
+    .quality(90)
+    .url();
 
-    const img = new Image();
-    img.src = newSrc;
+  const img = new Image();
+  img.src = newSrc;
 
-    img.onload = () => {
-      setDisplayedSrc(newSrc);
-    };
-  }, [image]);
+  // 🔥 KUI JUBA CACHE’IS → kohe vaheta
+  if (img.complete) {
+    setDisplayedSrc(newSrc);
+    return;
+  }
+
+  // 🔥 muidu oota loadi
+  img.onload = () => {
+    setDisplayedSrc(newSrc);
+  };
+}, [image]);
 
   // 🔥 PRELOAD
   useEffect(() => {
