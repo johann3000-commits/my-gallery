@@ -9,25 +9,13 @@ export default function GalleryClient({ galleries, currentIndex }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  if (!galleries || galleries.length === 0) {
-    return <div style={{ padding: 40 }}>No galleries</div>;
-  }
-
   const gallery = galleries[currentIndex];
-
-  if (!gallery || !gallery.images?.length) {
-    return <div style={{ padding: 40 }}>No images</div>;
-  }
-
   const images = gallery.images;
 
-  // 🔥 URL → index
   const imageParam = Number(searchParams.get("image") || 1) - 1;
+  const iIndex = Math.min(Math.max(imageParam, 0), images.length - 1);
 
-  const iIndex = Math.min(
-    Math.max(imageParam, 0),
-    images.length - 1
-  );
+  const [showIndex, setShowIndex] = useState(false);
 
   const textPrimary = {
     color: "#000",
@@ -37,10 +25,11 @@ export default function GalleryClient({ galleries, currentIndex }) {
     letterSpacing: "0.5px",
   };
 
-  const textSecondary = { color: "rgba(0,0,0,0.3)" };
-  const textTertiary = { color: "rgba(0,0,0,0.6)" };
+  function getSrc(img) {
+    return urlFor(img).width(1600).dpr(2).quality(90).url();
+  }
 
-  const [showIndex, setShowIndex] = useState(false);
+  const src = getSrc(images[iIndex]);
 
   function updateUrl(index) {
     router.replace(`/${gallery.slug}?image=${index + 1}`);
@@ -49,25 +38,16 @@ export default function GalleryClient({ galleries, currentIndex }) {
   function next() {
     if (iIndex < images.length - 1) {
       updateUrl(iIndex + 1);
-    } else {
-      const nextGallery = (currentIndex + 1) % galleries.length;
-      router.push(`/${galleries[nextGallery].slug}?image=1`);
     }
   }
 
   function prev() {
     if (iIndex > 0) {
       updateUrl(iIndex - 1);
-    } else {
-      const prevGallery =
-        (currentIndex - 1 + galleries.length) % galleries.length;
-      router.push(
-        `/${galleries[prevGallery].slug}?image=${galleries[prevGallery].images.length}`
-      );
     }
   }
 
-  // ⌨️ keyboard
+  // 🔥 KEYBOARD
   useEffect(() => {
     const handler = (e) => {
       if (showIndex) return;
@@ -81,7 +61,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     return () => window.removeEventListener("keydown", handler);
   });
 
-  // 👉 swipe
+  // 🔥 SWIPE
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
 
@@ -96,62 +76,40 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-
     const distance = touchStart - touchEnd;
-
     if (distance > 50) next();
     if (distance < -50) prev();
   };
 
-  const image = images[iIndex];
-
-  // 🔥 DIRECT SRC (NO JUMP BASE)
-  const src = urlFor(image)
-    .width(1600)
-    .dpr(2)
-    .quality(90)
-    .url();
-
-  // 🔥 LOCAL PRELOAD (nearby images)
+  // 🔥 FULL GLOBAL PRELOAD (SMART)
   useEffect(() => {
-    const range = 3;
-
-    for (let i = -range; i <= range; i++) {
-      const index = iIndex + i;
-
-      if (images[index]) {
-        const preloadSrc = urlFor(images[index])
-          .width(1600)
-          .dpr(2)
-          .quality(90)
-          .url();
-
-        const img = new Image();
-        img.src = preloadSrc;
-      }
-    }
-  }, [iIndex, images]);
-
-  // 🔥 GLOBAL STAGED PRELOAD (KÕIGE OLULISEM)
-  useEffect(() => {
-    let delay = 0;
+    const allSrcs = [];
 
     galleries.forEach((g) => {
       g.images.forEach((img) => {
-        const preloadSrc = urlFor(img)
-          .width(1600)
-          .dpr(2)
-          .quality(90)
-          .url();
-
-        setTimeout(() => {
-          const image = new Image();
-          image.src = preloadSrc;
-        }, delay);
-
-        delay += 60; // 👈 kontrolli kiirus (50–100 ideaalne)
+        allSrcs.push(getSrc(img));
       });
     });
+
+    const unique = [...new Set(allSrcs)];
+
+    let index = 0;
+
+    function loadBatch() {
+      const batchSize = 4;
+
+      for (let i = 0; i < batchSize && index < unique.length; i++) {
+        const img = new Image();
+        img.src = unique[index];
+        index++;
+      }
+
+      if (index < unique.length) {
+        requestIdleCallback(loadBatch);
+      }
+    }
+
+    requestIdleCallback(loadBatch);
   }, [galleries]);
 
   return (
@@ -169,7 +127,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
         position: "relative",
       }}
     >
-      {/* INDEX BUTTON */}
+      {/* INDEX */}
       <div
         onClick={() => setShowIndex(true)}
         style={{
@@ -187,23 +145,11 @@ export default function GalleryClient({ galleries, currentIndex }) {
       {/* CLICK AREAS */}
       <div
         onClick={prev}
-        style={{
-          position: "absolute",
-          left: 0,
-          top: "5%",
-          width: "50%",
-          height: "90%",
-        }}
+        style={{ position: "absolute", left: 0, width: "50%", height: "100%" }}
       />
       <div
         onClick={next}
-        style={{
-          position: "absolute",
-          right: 0,
-          top: "5%",
-          width: "50%",
-          height: "90%",
-        }}
+        style={{ position: "absolute", right: 0, width: "50%", height: "100%" }}
       />
 
       {/* IMAGE */}
@@ -217,21 +163,19 @@ export default function GalleryClient({ galleries, currentIndex }) {
       />
 
       {/* TEXT */}
-      <div className="gallery-text">
+      <div style={{ position: "absolute", bottom: 20, left: 20 }}>
         <div style={textPrimary}>{gallery.title}</div>
-
         {gallery.subtitle && (
-          <div style={{ ...textPrimary, ...textSecondary }}>
+          <div style={{ ...textPrimary, color: "rgba(0,0,0,0.3)" }}>
             {gallery.subtitle}
           </div>
         )}
-
-        <div style={{ ...textPrimary, ...textTertiary }}>
+        <div style={{ ...textPrimary, color: "rgba(0,0,0,0.6)" }}>
           {iIndex + 1}/{images.length}
         </div>
       </div>
 
-      {/* INDEX OVERLAY */}
+      {/* INDEX GRID */}
       {showIndex && (
         <div
           style={{
@@ -265,19 +209,8 @@ export default function GalleryClient({ galleries, currentIndex }) {
           >
             {galleries.map((g) => (
               <React.Fragment key={g.slug}>
-                <div
-                  style={{
-                    ...textPrimary,
-                    gridColumn: "1 / -1",
-                    display: "flex",
-                    gap: "12px",
-                    marginTop: "40px",
-                  }}
-                >
-                  <div>{g.title}</div>
-                  {g.subtitle && (
-                    <div style={textSecondary}>{g.subtitle}</div>
-                  )}
+                <div style={{ ...textPrimary, gridColumn: "1 / -1" }}>
+                  {g.title}
                 </div>
 
                 {g.images.map((img, iIdx) => (
