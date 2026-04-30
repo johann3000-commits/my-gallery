@@ -36,7 +36,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
   const images = gallery.images;
 
   const imageParam = Number(searchParams.get("image") || 0);
-
   const [iIndex, setIIndex] = useState(0);
 
   useEffect(() => {
@@ -110,6 +109,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const image = images[iIndex];
 
+  // 🔥 NO-FLASH SYSTEM
   const [displayedSrc, setDisplayedSrc] = useState(
     urlFor(image).width(1600).dpr(2).quality(90).url()
   );
@@ -129,6 +129,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     };
   }, [image]);
 
+  // 🔥 PRELOAD
   useEffect(() => {
     const range = 3;
 
@@ -148,65 +149,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
     }
   }, [iIndex, images]);
 
-  // 📚 INDEX
-  if (showIndex) {
-    return (
-      <div style={{ padding: "5%", background: "#fff" }}>
-        <div
-          onClick={() => setShowIndex(false)}
-          style={{
-            ...textPrimary,
-            position: "fixed",
-            top: 20,
-            right: 20,
-            cursor: "pointer",
-          }}
-        >
-          Close
-        </div>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "20px",
-          }}
-        >
-          {galleries.map((g) => (
-            <React.Fragment key={g.slug}>
-              <div
-                style={{
-                  ...textPrimary,
-                  gridColumn: "1 / -1",
-                  display: "flex",
-                  gap: "12px",
-                  marginTop: "40px",
-                }}
-              >
-                <div>{g.title}</div>
-                {g.subtitle && (
-                  <div style={textSecondary}>{g.subtitle}</div>
-                )}
-              </div>
-
-              {g.images.map((img, iIdx) => (
-                <img
-                  key={`${g.slug}-${iIdx}`}
-                  src={urlFor(img).width(800).url()}
-                  onClick={() => {
-                    setShowIndex(false); // 🔥 FIX
-                    router.push(`/${g.slug}?image=${iIdx}`);
-                  }}
-                  style={{ width: "100%", cursor: "pointer" }}
-                />
-              ))}
-            </React.Fragment>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div
       onTouchStart={onTouchStart}
@@ -222,6 +164,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
         position: "relative",
       }}
     >
+      {/* INDEX BUTTON */}
       <div
         onClick={() => setShowIndex(true)}
         style={{
@@ -236,6 +179,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
         Index
       </div>
 
+      {/* CLICK AREAS */}
       <div
         onClick={prev}
         style={{
@@ -257,6 +201,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
         }}
       />
 
+      {/* IMAGE */}
       <img
         src={displayedSrc}
         style={{
@@ -266,19 +211,84 @@ export default function GalleryClient({ galleries, currentIndex }) {
         }}
       />
 
+      {/* TEXT */}
       <div className="gallery-text">
         <div style={textPrimary}>{gallery.title}</div>
-
         {gallery.subtitle && (
           <div style={{ ...textPrimary, ...textSecondary }}>
             {gallery.subtitle}
           </div>
         )}
-
         <div style={{ ...textPrimary, ...textTertiary }}>
           {iIndex + 1}/{images.length}
         </div>
       </div>
+
+      {/* 🔥 INDEX OVERLAY (KEY CHANGE) */}
+      {showIndex && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "#fff",
+            padding: "5%",
+            overflowY: "scroll",
+            zIndex: 20,
+          }}
+        >
+          <div
+            onClick={() => setShowIndex(false)}
+            style={{
+              ...textPrimary,
+              position: "fixed",
+              top: 20,
+              right: 20,
+              cursor: "pointer",
+            }}
+          >
+            Close
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: "20px",
+            }}
+          >
+            {galleries.map((g) => (
+              <React.Fragment key={g.slug}>
+                <div
+                  style={{
+                    ...textPrimary,
+                    gridColumn: "1 / -1",
+                    display: "flex",
+                    gap: "12px",
+                    marginTop: "40px",
+                  }}
+                >
+                  <div>{g.title}</div>
+                  {g.subtitle && (
+                    <div style={textSecondary}>{g.subtitle}</div>
+                  )}
+                </div>
+
+                {g.images.map((img, iIdx) => (
+                  <img
+                    key={`${g.slug}-${iIdx}`}
+                    src={urlFor(img).width(800).url()}
+                    onClick={() => {
+                      router.push(`/${g.slug}?image=${iIdx}`);
+                      setShowIndex(false);
+                    }}
+                    style={{ width: "100%", cursor: "pointer" }}
+                  />
+                ))}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
