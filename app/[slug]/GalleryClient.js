@@ -24,7 +24,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
   const textSecondary = { color: "rgba(0,0,0,0.3)" };
   const textTertiary = { color: "rgba(0,0,0,0.6)" };
 
-  const [gIndex] = useState(currentIndex || 0);
+  const gIndex = currentIndex || 0;
   const [showIndex, setShowIndex] = useState(false);
 
   const gallery = galleries[gIndex];
@@ -45,10 +45,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
     );
     setIIndex(newIndex);
   }, [imageParam, images.length]);
-
-  useEffect(() => {
-    setIIndex(0);
-  }, [currentIndex]);
 
   function updateUrl(index) {
     router.replace(`/${gallery.slug}?image=${index}`);
