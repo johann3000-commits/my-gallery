@@ -21,7 +21,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const images = gallery.images;
 
-  // 🔥 1-based → 0-based
+  // 🔥 URL → index
   const imageParam = Number(searchParams.get("image") || 1) - 1;
 
   const iIndex = Math.min(
@@ -105,14 +105,14 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const image = images[iIndex];
 
-  // 🔥 DIRECT SRC (NO STATE → NO JUMP)
+  // 🔥 DIRECT SRC (NO JUMP BASE)
   const src = urlFor(image)
     .width(1600)
     .dpr(2)
     .quality(90)
     .url();
 
-  // 🔥 PRELOAD (jätame alles)
+  // 🔥 LOCAL PRELOAD (nearby images)
   useEffect(() => {
     const range = 3;
 
@@ -131,6 +131,28 @@ export default function GalleryClient({ galleries, currentIndex }) {
       }
     }
   }, [iIndex, images]);
+
+  // 🔥 GLOBAL STAGED PRELOAD (KÕIGE OLULISEM)
+  useEffect(() => {
+    let delay = 0;
+
+    galleries.forEach((g) => {
+      g.images.forEach((img) => {
+        const preloadSrc = urlFor(img)
+          .width(1600)
+          .dpr(2)
+          .quality(90)
+          .url();
+
+        setTimeout(() => {
+          const image = new Image();
+          image.src = preloadSrc;
+        }, delay);
+
+        delay += 60; // 👈 kontrolli kiirus (50–100 ideaalne)
+      });
+    });
+  }, [galleries]);
 
   return (
     <div
