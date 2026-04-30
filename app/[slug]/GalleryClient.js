@@ -26,6 +26,14 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const [showIndex, setShowIndex] = useState(false);
 
+  const textPrimary = {
+    fontSize: "10px",
+    textTransform: "uppercase",
+    fontFamily: "Arial, Helvetica, sans-serif",
+    letterSpacing: "0.5px",
+    color: "#000",
+  };
+
   function getSrc(img) {
     return urlFor(img).width(1600).dpr(2).quality(90).url();
   }
@@ -130,11 +138,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
             position: "absolute",
             top: 20,
             right: 20,
-            fontSize: "10px",
-            fontFamily: "Arial, Helvetica, sans-serif",
-            textTransform: "uppercase",
-            letterSpacing: "0.5px",
-            color: "#000",
+            ...textPrimary,
             cursor: "pointer",
             zIndex: 30,
           }}
@@ -146,23 +150,11 @@ export default function GalleryClient({ galleries, currentIndex }) {
       {/* CLICK AREAS */}
       <div
         onClick={prev}
-        style={{
-          position: "absolute",
-          left: 0,
-          top: "5%",
-          width: "50%",
-          height: "90%",
-        }}
+        style={{ position: "absolute", left: 0, top: "5%", width: "50%", height: "90%" }}
       />
       <div
         onClick={next}
-        style={{
-          position: "absolute",
-          right: 0,
-          top: "5%",
-          width: "50%",
-          height: "90%",
-        }}
+        style={{ position: "absolute", right: 0, top: "5%", width: "50%", height: "90%" }}
       />
 
       {/* IMAGE */}
@@ -177,6 +169,21 @@ export default function GalleryClient({ galleries, currentIndex }) {
         />
       )}
 
+      {/* TEXT OVERLAY */}
+      <div className="gallery-text">
+        <div style={textPrimary}>{gallery.title}</div>
+
+        {gallery.subtitle && (
+          <div style={{ ...textPrimary, color: "rgba(0,0,0,0.3)" }}>
+            {gallery.subtitle}
+          </div>
+        )}
+
+        <div style={{ ...textPrimary, color: "rgba(0,0,0,0.6)" }}>
+          {iIndex + 1}/{images.length}
+        </div>
+      </div>
+
       {/* INDEX GRID */}
       {showIndex && (
         <div
@@ -189,27 +196,21 @@ export default function GalleryClient({ galleries, currentIndex }) {
             zIndex: 20,
           }}
         >
-          {/* 🔥 TOP BAR (EMAIL + CLOSE) */}
+          {/* TOP BAR */}
           <div
             style={{
               position: "fixed",
               top: 20,
               right: 20,
               display: "flex",
-              alignItems: "center",
               gap: "16px",
               zIndex: 40,
             }}
           >
-            {/* EMAIL */}
             <a
               href="mailto:johann3000@gmail.com"
               style={{
-                fontSize: "10px",
-                fontFamily: "Arial, Helvetica, sans-serif",
-                textTransform: "uppercase",
-                letterSpacing: "0.5px",
-                color: "#000",
+                ...textPrimary,
                 textDecoration: "none",
                 cursor: "pointer",
               }}
@@ -217,17 +218,9 @@ export default function GalleryClient({ galleries, currentIndex }) {
               johann3000@gmail.com
             </a>
 
-            {/* CLOSE */}
             <div
               onClick={() => setShowIndex(false)}
-              style={{
-                fontSize: "10px",
-                fontFamily: "Arial, Helvetica, sans-serif",
-                textTransform: "uppercase",
-                letterSpacing: "0.5px",
-                color: "#000",
-                cursor: "pointer",
-              }}
+              style={{ ...textPrimary, cursor: "pointer" }}
             >
               Close
             </div>
@@ -243,26 +236,22 @@ export default function GalleryClient({ galleries, currentIndex }) {
             {galleries.map((g) => (
               <React.Fragment key={g.slug}>
                 <div
-  style={{
-    gridColumn: "1 / -1",
-    marginTop: "40px",
-    display: "flex",
-    gap: "12px",
-    fontSize: "10px",
-    textTransform: "uppercase",
-    fontFamily: "Arial, Helvetica, sans-serif",
-  }}
->
-  <div style={{ color: "#000" }}>
-    {g.title}
-  </div>
+                  style={{
+                    gridColumn: "1 / -1",
+                    marginTop: "40px",
+                    display: "flex",
+                    gap: "12px",
+                    ...textPrimary,
+                  }}
+                >
+                  <div style={{ color: "#000" }}>{g.title}</div>
 
-  {g.subtitle && (
-    <div style={{ color: "rgba(0,0,0,0.3)" }}>
-      {g.subtitle}
-    </div>
-  )}
-</div>
+                  {g.subtitle && (
+                    <div style={{ color: "rgba(0,0,0,0.3)" }}>
+                      {g.subtitle}
+                    </div>
+                  )}
+                </div>
 
                 {g.images.map((img, iIdx) => (
                   <img

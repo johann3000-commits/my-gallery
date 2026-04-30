@@ -50,8 +50,16 @@ a {
 
 .gallery-text {
   position: absolute;
-  left: 20px;
-  top: 20px; /* mobile */
+  left: max(20px, env(safe-area-inset-left));
+  bottom: max(20px, env(safe-area-inset-bottom));
+}
+
+/* 📱 mobile */
+@media (max-width: 768px) {
+  .gallery-text {
+    top: 20px;
+    bottom: auto;
+  }
 }
 
 @media (min-width: 768px) {
