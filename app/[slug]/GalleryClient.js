@@ -13,6 +13,23 @@ export default function GalleryClient({ galleries, currentIndex }) {
     return <div style={{ padding: 40 }}>No galleries</div>;
   }
 
+  // 🎯 EI kasuta state — alati propsist
+  const gallery = galleries[currentIndex];
+
+  if (!gallery || !gallery.images?.length) {
+    return <div style={{ padding: 40 }}>No images</div>;
+  }
+
+  const images = gallery.images;
+
+  // 🔥 1-based → 0-based
+  const imageParam = Number(searchParams.get("image") || 1) - 1;
+
+  const iIndex = Math.min(
+    Math.max(imageParam, 0),
+    images.length - 1
+  );
+
   const textPrimary = {
     color: "#000",
     fontSize: "10px",
@@ -24,32 +41,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
   const textSecondary = { color: "rgba(0,0,0,0.3)" };
   const textTertiary = { color: "rgba(0,0,0,0.6)" };
 
-  // 🔥 oluline: EI OLE state
-  const gIndex = currentIndex || 0;
-
   const [showIndex, setShowIndex] = useState(false);
-
-  const gallery = galleries[gIndex];
-
-  if (!gallery || !gallery.images?.length) {
-    return <div style={{ padding: 40 }}>No images</div>;
-  }
-
-  const images = gallery.images;
-
-  // 🔥 1-based → 0-based
-  const imageParam = Number(searchParams.get("image") || 1) - 1;
-
-  const [iIndex, setIIndex] = useState(0);
-
-  // 🔥 URL sync
-  useEffect(() => {
-    const newIndex = Math.min(
-      Math.max(imageParam, 0),
-      images.length - 1
-    );
-    setIIndex(newIndex);
-  }, [imageParam, images.length]);
 
   function updateUrl(index) {
     router.replace(`/${gallery.slug}?image=${index + 1}`);
@@ -59,8 +51,8 @@ export default function GalleryClient({ galleries, currentIndex }) {
     if (iIndex < images.length - 1) {
       updateUrl(iIndex + 1);
     } else {
-      const nextGallery = (gIndex + 1) % galleries.length;
-      router.push(`/${galleries[nextGallery].slug}`);
+      const nextGallery = (currentIndex + 1) % galleries.length;
+      router.push(`/${galleries[nextGallery].slug}?image=1`);
     }
   }
 
@@ -69,12 +61,14 @@ export default function GalleryClient({ galleries, currentIndex }) {
       updateUrl(iIndex - 1);
     } else {
       const prevGallery =
-        (gIndex - 1 + galleries.length) % galleries.length;
-      router.push(`/${galleries[prevGallery].slug}`);
+        (currentIndex - 1 + galleries.length) % galleries.length;
+      router.push(
+        `/${galleries[prevGallery].slug}?image=${galleries[prevGallery].images.length}`
+      );
     }
   }
 
-  // keyboard
+  // ⌨️ keyboard
   useEffect(() => {
     const handler = (e) => {
       if (showIndex) return;
@@ -88,7 +82,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     return () => window.removeEventListener("keydown", handler);
   });
 
-  // swipe
+  // 👉 swipe
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
 
@@ -112,7 +106,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const image = images[iIndex];
 
-  // 🔥 NO FLASH
+  // 🔥 NO-FLASH (cache-aware)
   const [displayedSrc, setDisplayedSrc] = useState(
     urlFor(image).width(1600).dpr(2).quality(90).url()
   );
@@ -129,12 +123,9 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
     if (img.complete) {
       setDisplayedSrc(newSrc);
-      return;
+    } else {
+      img.onload = () => setDisplayedSrc(newSrc);
     }
-
-    img.onload = () => {
-      setDisplayedSrc(newSrc);
-    };
   }, [image]);
 
   // 🔥 PRELOAD
