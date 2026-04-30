@@ -13,7 +13,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
     return <div style={{ padding: 40 }}>No galleries</div>;
   }
 
-  // 🎨 TYPE
   const textPrimary = {
     color: "#000",
     fontSize: "10px",
@@ -36,17 +35,24 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const images = gallery.images;
 
-  // 🔥 URL → state
-  const imageParam = searchParams.get("image");
+  // 🔥 URL param
+  const imageParam = Number(searchParams.get("image") || 0);
+
   const [iIndex, setIIndex] = useState(0);
 
+  // 🔥 sync URL → state
   useEffect(() => {
     const newIndex = Math.min(
-      Math.max(parseInt(imageParam || "0", 10), 0),
+      Math.max(imageParam, 0),
       images.length - 1
     );
     setIIndex(newIndex);
   }, [imageParam, images.length]);
+
+  // 🔥 RESET when gallery changes
+  useEffect(() => {
+    setIIndex(0);
+  }, [currentIndex]);
 
   function updateUrl(index) {
     router.replace(`/${gallery.slug}?image=${index}`);
@@ -71,7 +77,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     }
   }
 
-  // ⌨️ keyboard nav
+  // ⌨️ keyboard
   useEffect(() => {
     const handler = (e) => {
       if (showIndex) return;
@@ -109,7 +115,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const image = images[iIndex];
 
-  // 🔥 NO-FLASH IMAGE SYSTEM
+  // 🔥 NO FLASH
   const [displayedSrc, setDisplayedSrc] = useState(
     urlFor(image).width(1600).dpr(2).quality(90).url()
   );
@@ -129,7 +135,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     };
   }, [image]);
 
-  // 🔥 INSTANT PRELOAD
+  // 🔥 PRELOAD
   useEffect(() => {
     const range = 3;
 
@@ -149,7 +155,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
     }
   }, [iIndex, images]);
 
-  // 📚 INDEX VIEW
+  // 📚 INDEX
   if (showIndex) {
     return (
       <div style={{ padding: "5%", background: "#fff" }}>
@@ -270,7 +276,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
         }}
       />
 
-      {/* TEXT (uses CSS!) */}
+      {/* TEXT */}
       <div className="gallery-text">
         <div style={textPrimary}>{gallery.title}</div>
 
