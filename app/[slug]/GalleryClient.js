@@ -41,24 +41,32 @@ export default function GalleryClient({ galleries, currentIndex }) {
   const [displaySrc, setDisplaySrc] = useState("");
   const image = images[iIndex];
 
-  useEffect(() => {
+useEffect(() => {
   const newSrc = getSrc(image);
 
   const img = new Image();
   img.src = newSrc;
 
+  let didSet = false;
+
   if (img.decode) {
     img.decode().then(() => {
-      setDisplaySrc(newSrc);
+      if (!didSet) {
+        setDisplaySrc(newSrc);
+        didSet = true;
+      }
     });
-
-    // 🔥 fallback (mobiili jaoks)
-    setTimeout(() => {
-      setDisplaySrc(newSrc);
-    }, 50);
-  } else {
-    img.onload = () => setDisplaySrc(newSrc);
   }
+
+  // 🔥 fallback ainult kui decode venib
+  const timeout = setTimeout(() => {
+    if (!didSet) {
+      setDisplaySrc(newSrc);
+      didSet = true;
+    }
+  }, 120); // 👈 sweet spot
+
+  return () => clearTimeout(timeout);
 }, [image]);
 
   function updateUrl(index) {
