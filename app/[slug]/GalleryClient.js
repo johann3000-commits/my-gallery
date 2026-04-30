@@ -35,12 +35,10 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const images = gallery.images;
 
-  // 🔥 URL param
   const imageParam = Number(searchParams.get("image") || 0);
 
   const [iIndex, setIIndex] = useState(0);
 
-  // 🔥 sync URL → state
   useEffect(() => {
     const newIndex = Math.min(
       Math.max(imageParam, 0),
@@ -49,7 +47,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
     setIIndex(newIndex);
   }, [imageParam, images.length]);
 
-  // 🔥 RESET when gallery changes
   useEffect(() => {
     setIIndex(0);
   }, [currentIndex]);
@@ -77,7 +74,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
     }
   }
 
-  // ⌨️ keyboard
   useEffect(() => {
     const handler = (e) => {
       if (showIndex) return;
@@ -91,7 +87,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
     return () => window.removeEventListener("keydown", handler);
   });
 
-  // 👉 swipe
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
 
@@ -115,7 +110,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
 
   const image = images[iIndex];
 
-  // 🔥 NO FLASH
   const [displayedSrc, setDisplayedSrc] = useState(
     urlFor(image).width(1600).dpr(2).quality(90).url()
   );
@@ -135,7 +129,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
     };
   }, [image]);
 
-  // 🔥 PRELOAD
   useEffect(() => {
     const range = 3;
 
@@ -200,9 +193,10 @@ export default function GalleryClient({ galleries, currentIndex }) {
                 <img
                   key={`${g.slug}-${iIdx}`}
                   src={urlFor(img).width(800).url()}
-                  onClick={() =>
-                    router.push(`/${g.slug}?image=${iIdx}`)
-                  }
+                  onClick={() => {
+                    setShowIndex(false); // 🔥 FIX
+                    router.push(`/${g.slug}?image=${iIdx}`);
+                  }}
                   style={{ width: "100%", cursor: "pointer" }}
                 />
               ))}
@@ -213,7 +207,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
     );
   }
 
-  // 🎞️ SLIDESHOW
   return (
     <div
       onTouchStart={onTouchStart}
@@ -229,7 +222,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
         position: "relative",
       }}
     >
-      {/* INDEX */}
       <div
         onClick={() => setShowIndex(true)}
         style={{
@@ -244,7 +236,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
         Index
       </div>
 
-      {/* CLICK AREAS */}
       <div
         onClick={prev}
         style={{
@@ -266,7 +257,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
         }}
       />
 
-      {/* IMAGE */}
       <img
         src={displayedSrc}
         style={{
@@ -276,7 +266,6 @@ export default function GalleryClient({ galleries, currentIndex }) {
         }}
       />
 
-      {/* TEXT */}
       <div className="gallery-text">
         <div style={textPrimary}>{gallery.title}</div>
 
