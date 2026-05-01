@@ -285,7 +285,7 @@ export default function GalleryClient({ galleries, currentIndex }) {
                 >
                   <div>{g.title}</div>
                   {g.subtitle && (
-                    <div style={{ color: "rgba(0,0,0,0.3)" }}>
+                    <div style={{ color: "rgba(0,0,0,0.5)" }}>
                       {g.subtitle}
                     </div>
                   )}
