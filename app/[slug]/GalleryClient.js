@@ -34,40 +34,63 @@ export default function GalleryClient({ galleries, currentIndex }) {
     color: "#000",
   };
 
+  // 🔥 BASE SRC (fallback)
   function getSrc(img) {
-    return urlFor(img).width(1600).dpr(2).quality(90).url();
+    return urlFor(img)
+      .width(1200)
+      .quality(80)
+      .auto("format")
+      .fit("max")
+      .url();
+  }
+
+  // 🔥 RESPONSIVE SRCSET
+  function getSrcSet(img) {
+    const widths = [400, 800, 1200, 1600, 2000];
+
+    return widths
+      .map(
+        (w) =>
+          `${urlFor(img)
+            .width(w)
+            .quality(80)
+            .auto("format")
+            .fit("max")
+            .url()} ${w}w`
+      )
+      .join(", ");
   }
 
   const [displaySrc, setDisplaySrc] = useState("");
   const image = images[iIndex];
 
-useEffect(() => {
-  const newSrc = getSrc(image);
+  // 🔥 NO-FLASH / BALANCED LOADING
+  useEffect(() => {
+    const newSrc = getSrc(image);
 
-  const img = new Image();
-  img.src = newSrc;
+    const img = new Image();
+    img.src = newSrc;
 
-  let didSet = false;
+    let didSet = false;
 
-  if (img.decode) {
-    img.decode().then(() => {
+    if (img.decode) {
+      img.decode().then(() => {
+        if (!didSet) {
+          setDisplaySrc(newSrc);
+          didSet = true;
+        }
+      });
+    }
+
+    const timeout = setTimeout(() => {
       if (!didSet) {
         setDisplaySrc(newSrc);
         didSet = true;
       }
-    });
-  }
+    }, 120);
 
-  // 🔥 fallback ainult kui decode venib
-  const timeout = setTimeout(() => {
-    if (!didSet) {
-      setDisplaySrc(newSrc);
-      didSet = true;
-    }
-  }, 120); // 👈 sweet spot
-
-  return () => clearTimeout(timeout);
-}, [image]);
+    return () => clearTimeout(timeout);
+  }, [image]);
 
   function updateUrl(index) {
     router.replace(`/${gallery.slug}?image=${index + 1}`);
@@ -94,6 +117,7 @@ useEffect(() => {
     }
   }
 
+  // ⌨️ keyboard
   useEffect(() => {
     const handler = (e) => {
       if (showIndex) return;
@@ -107,6 +131,7 @@ useEffect(() => {
     return () => window.removeEventListener("keydown", handler);
   });
 
+  // 👉 swipe
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
 
@@ -174,6 +199,8 @@ useEffect(() => {
       {displaySrc && (
         <img
           src={displaySrc}
+          srcSet={getSrcSet(image)}
+          sizes="(max-width: 768px) 100vw, 90vw"
           style={{
             maxWidth: "90%",
             maxHeight: "90%",
@@ -182,7 +209,7 @@ useEffect(() => {
         />
       )}
 
-      {/* TEXT OVERLAY */}
+      {/* TEXT */}
       <div className="gallery-text">
         <div style={textPrimary}>{gallery.title}</div>
 
@@ -225,7 +252,6 @@ useEffect(() => {
               style={{
                 ...textPrimary,
                 textDecoration: "none",
-                cursor: "pointer",
               }}
             >
               johann3000@gmail.com
@@ -257,8 +283,7 @@ useEffect(() => {
                     ...textPrimary,
                   }}
                 >
-                  <div style={{ color: "#000" }}>{g.title}</div>
-
+                  <div>{g.title}</div>
                   {g.subtitle && (
                     <div style={{ color: "rgba(0,0,0,0.3)" }}>
                       {g.subtitle}
@@ -269,7 +294,7 @@ useEffect(() => {
                 {g.images.map((img, iIdx) => (
                   <img
                     key={`${g.slug}-${iIdx}`}
-                    src={urlFor(img).width(800).url()}
+                    src={urlFor(img).width(800).auto("format").url()}
                     onClick={() => {
                       router.push(`/${g.slug}?image=${iIdx + 1}`);
                       setShowIndex(false);
